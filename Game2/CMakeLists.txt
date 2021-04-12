@@ -6,7 +6,7 @@ set(SFML_DIR ../SFML/lib/cmake/SFML)    # Location of SFML (local to project)
 set(ENV{PATH} mingw32/bin/)             # Location of C++ compiler
 
 # Include SFML
-include_directories(. SFML/include)
+include_directories(. ../SFML/include)
 find_package(SFML COMPONENTS graphics window audio system network REQUIRED)
 
 # Add the Engine library

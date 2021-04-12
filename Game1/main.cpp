@@ -9,6 +9,6 @@
 
 int main() {
     std::cout << "Game 1" << std::endl;
-    tda::test();
+    td::test();
     return 0;
 }
