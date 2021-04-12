@@ -5,7 +5,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Network.hpp>
-#include <../TDAHelper/library.hpp>
+#include <TDAHelper/library.hpp>
 
 int main() {
     std::cout << "Game 2" << std::endl;
