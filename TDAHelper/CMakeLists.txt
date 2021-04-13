@@ -8,5 +8,5 @@ set(ENV{PATH} mingw32/bin/)             # Location of C++ compiler
 include_directories(. ../SFML/include)
 find_package(SFML COMPONENTS graphics window audio system network REQUIRED)
 
-add_library(TDAHelper SHARED library.cpp library.hpp library.cpp)
+add_library(TDAHelper SHARED library.hpp library.cpp)
 target_link_libraries(TDAHelper sfml-graphics sfml-window sfml-audio sfml-system sfml-network -static-libstdc++)

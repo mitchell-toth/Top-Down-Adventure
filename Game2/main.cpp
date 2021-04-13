@@ -1,14 +1,19 @@
-#include <iostream>
+/*
+ * Top-Down Adventure demo, made with C++, SFML, and a custom TDAHelper engine
+ * Mitchell Toth
+ * April 2021
+ */
 
-#include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
-#include <SFML/Audio.hpp>
-#include <SFML/System.hpp>
-#include <SFML/Network.hpp>
-#include <TDAHelper/library.hpp>
+#include "Game.h"
 
 int main() {
     std::cout << "Game 2" << std::endl;
     td::test();
+    Game game = Game();
+    while(game.running()) {
+        if (!(game.paused()))
+            game.update();
+        game.render();
+    }
     return 0;
 }

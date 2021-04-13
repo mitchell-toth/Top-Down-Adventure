@@ -12,7 +12,7 @@ include_directories(. ../SFML/include ../)
 find_package(SFML COMPONENTS graphics window audio system network REQUIRED)
 
 # Add the Engine library
-add_library(TDAHelper ../TDAHelper/library.hpp ../TDAHelper/library.cpp)
+add_library(TDAHelper SHARED ../TDAHelper/library.hpp ../TDAHelper/library.cpp)
 
-add_executable(Game2 main.cpp)
+add_executable(Game2 main.cpp Game.cpp Game.h)
 target_link_libraries(Game2 sfml-graphics sfml-window sfml-audio sfml-system sfml-network -static-libstdc++ TDAHelper)
