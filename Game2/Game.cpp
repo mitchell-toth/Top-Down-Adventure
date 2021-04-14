@@ -37,7 +37,7 @@ void Game::initVariables() {
 
 // Initialize game fonts
 void Game::initFonts() {
-    this->font.loadFromFile("assets/fonts/impact.ttf");
+    this->font.loadFromFile("../assets/fonts/impact.ttf");
 }
 
 
@@ -52,8 +52,21 @@ void Game::initText() {
 
 // Initialize game window
 void Game::initWindow() {
-    td::Window w = td::Window();
-    this->window = w.initWindow(this->fps);
+    this->videoMode.width = 800;
+    this->videoMode.height = 800;
+
+    // Allocate the window
+    this->window = new sf::RenderWindow(
+            this->videoMode, "Title", sf::Style::Titlebar | sf::Style::Close);
+
+    // Center the window
+    this->window->setPosition(sf::Vector2i(
+            sf::VideoMode::getDesktopMode().width * 0.5 - this->window->getSize().x * 0.5,
+            sf::VideoMode::getDesktopMode().height * 0.5 - this->window->getSize().y * 0.5
+    ));
+
+    // Set frame rate
+    this->window->setFramerateLimit(60);
 }
 
 
