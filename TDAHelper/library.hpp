@@ -8,6 +8,8 @@
 #include <SFML/Window.hpp>
 #include <SFML/System.hpp>
 #include <sstream>
+#include <iostream>
+#include <fstream>
 
 namespace td {
     void test();
@@ -20,20 +22,39 @@ namespace td {
             RIGHT = 1
         };
         struct Config {
-            sf::Text text{};
+            sf::Font font{};
             int x{0};
             int y{0};
             int size{12};
             Align align{Align::LEFT};
             sf::Color color{sf::Color::White};
         };
-        static void print(sf::RenderTarget* target, const std::string& s, Config config);
+        static void print(sf::RenderTarget* target, const std::string& s, const Config& config);
     };
 
     class Shapes {
     public:
-        static sf::RectangleShape rect(float x, float y, float width, float height, sf::Color color = sf::Color::White);
-        static sf::VertexArray line(float x1, float y1, float x2, float y2, sf::Color color = sf::Color::White);
+        static sf::RectangleShape rect(int x, int y, int width, int height, sf::Color color = sf::Color::White);
+        static sf::VertexArray line(int x1, int y1, int x2, int y2, sf::Color color = sf::Color::White);
+    };
+
+    class Map {
+    private:
+        std::vector<std::vector<char>> map;
+        int tile_size;
+        int max_allowed_tile_size;
+
+        void initVariables();
+    public:
+        // Constructor/destructor
+        Map();
+        explicit Map(const std::string& path);
+        ~Map();
+
+        void readMap(const std::string& path);
+        void printMap();
+        void renderMap(sf::RenderTarget* target);
+        void setTileSize(int size);
     };
 }
 

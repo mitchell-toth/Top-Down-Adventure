@@ -11,16 +11,16 @@ class Game {
         sf::Event ev;
         int fps;
         int pause;
+        td::Map map;
 
         // Fonts/text
         sf::Font font;
-        sf::Text text;
 
         // Initialization
         void initVariables();
         void initFonts();
-        void initText();
         void initWindow();
+        void initMap();
 
         // Game functions
         void pollEvents();

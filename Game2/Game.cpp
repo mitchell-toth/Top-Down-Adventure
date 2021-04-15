@@ -4,8 +4,8 @@
 Game::Game() {
     this->initVariables();
     this->initFonts();
-    this->initText();
     this->initWindow();
+    this->initMap();
 }
 
 
@@ -41,15 +41,6 @@ void Game::initFonts() {
 }
 
 
-// Initialize game text
-void Game::initText() {
-    this->text.setFont(this->font);
-    this->text.setCharacterSize(12);
-    this->text.setFillColor(sf::Color::White);
-    this->text.setString(("NONE"));
-}
-
-
 // Initialize game window
 void Game::initWindow() {
     this->videoMode.width = 800;
@@ -70,6 +61,14 @@ void Game::initWindow() {
 }
 
 
+// Initialize game map
+void Game::initMap() {
+    this->map = td::Map("../assets/map/map.txt");
+    this->map.printMap();
+    this->map.setTileSize(100);
+}
+
+
 // Update
 void Game::update() {
     this->pollEvents();  // Poll for game loop events
@@ -81,17 +80,10 @@ void Game::render() {
     // Clear previous frame renders
     this->window->clear();
 
-    td::Text::Config c = {.text=this->text, .align=td::Text::Align::CENTER};
-    td::Text::print(this->window, "Hello!", {.text=this->text, .y=100, .align=td::Text::Align::CENTER});
-    std::stringstream ss;
-    ss << "Hello world!" << " Hi there";
-    td::Text::print(this->window, ss.str(), c);
+    td::Text::print(this->window, "Hello!", {.font=this->font, .y=100, .align=td::Text::Align::CENTER});
 
-    sf::RectangleShape rect = td::Shapes::rect(200, 200, 50, 50);
-    this->window->draw(rect);
-
-    sf::VertexArray line = td::Shapes::line(0, 0, 800, 800, sf::Color::Red);
-    this->window->draw(line);
+    // Render the map
+    this->map.renderMap(this->window);
 
     // Display on window
     this->window->display();
@@ -100,8 +92,8 @@ void Game::render() {
 
 // Event polling
 void Game::pollEvents() {
-    while(this->window->pollEvent(this->ev)) {
-        switch(this->ev.type) {
+    while (this->window->pollEvent(this->ev)) {
+        switch (this->ev.type) {
             case sf::Event::Closed:                 // Red X to close window
                 this->window->close();
                 break;
