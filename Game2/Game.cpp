@@ -81,6 +81,18 @@ void Game::render() {
     // Clear previous frame renders
     this->window->clear();
 
+    td::Text::Config c = {.text=this->text, .align=td::Text::Align::CENTER};
+    td::Text::print(this->window, "Hello!", {.text=this->text, .y=100, .align=td::Text::Align::CENTER});
+    std::stringstream ss;
+    ss << "Hello world!" << " Hi there";
+    td::Text::print(this->window, ss.str(), c);
+
+    sf::RectangleShape rect = td::Shapes::rect(200, 200, 50, 50);
+    this->window->draw(rect);
+
+    sf::VertexArray line = td::Shapes::line(0, 0, 800, 800, sf::Color::Red);
+    this->window->draw(line);
+
     // Display on window
     this->window->display();
 }
