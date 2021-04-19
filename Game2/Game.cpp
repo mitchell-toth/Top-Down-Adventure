@@ -32,6 +32,8 @@ void Game::initVariables() {
     this->window = nullptr;
     this->fps = 60;
     this->pause = 0;
+    this->player = Player();
+    this->player.setPosition(2,2);
 }
 
 
@@ -64,8 +66,7 @@ void Game::initWindow() {
 // Initialize game map
 void Game::initMap() {
     this->map = td::Map("../assets/map/map.txt");
-    this->map.printMap();
-    this->map.setTileSize(100);
+    this->map.setTileSize(40);
 }
 
 
@@ -84,6 +85,9 @@ void Game::render() {
 
     // Render the map
     this->map.renderMap(this->window);
+
+    // Render the player
+    // this->window->draw(this->player.getRenderObj());
 
     // Display on window
     this->window->display();

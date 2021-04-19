@@ -2,10 +2,7 @@
 
 /* General */
 
-// A simple test method to see if the Engine is linked correctly
-void td::test() {
-    std::cout << "Hello, World!" << std::endl;
-}
+
 
 
 /* Text */
@@ -58,6 +55,21 @@ sf::VertexArray td::Shapes::line(int x1, int y1, int x2, int y2, sf::Color color
 }
 
 
+/* Tile */
+
+td::Tile::Tile() = default;
+
+td::Tile::Tile(char sprite, char type, int row, int col) {
+    this->sprite = sprite;
+    this->type = type;
+    this->row = row;
+    this->col = col;
+}
+
+td::Tile::~Tile() = default;
+
+
+
 /* Map */
 
 // Constructor
@@ -66,7 +78,7 @@ td::Map::Map() {
 }
 td::Map::Map(const std::string& path) {
     this->initVariables();
-    readMap(path);
+    this->readMap(path);
 }
 
 // Destructor
@@ -84,21 +96,30 @@ void td::Map::readMap(const std::string &path) {
     std::ifstream mapFile;
     mapFile.open(path);
 
+    // Create the raw map from the supplied map file
+    // Also create a tile map with encoded information
     std::string line;
-    int row = 0;
+    int r = 0;
     while (std::getline(mapFile, line)) {
-        this->map.emplace_back(std::vector<char>());
-        for (char & col : line) {
-            this->map[row].emplace_back(col);
+        this->map_raw.emplace_back(std::vector<char>());
+        this->map.emplace_back(std::vector<td::Tile>());
+        for (int c=0; c<line.length(); c+=2) {
+            char sprite = line[c];
+            char type = line[c+1];
+            this->map_raw[r].emplace_back(sprite);
+            this->map_raw[r].emplace_back(type);
+
+            td::Tile t = td::Tile(sprite, type, r, c);
+            this->map[r].emplace_back(t);
         }
-        row++;
+        r++;
     }
     mapFile.close();
 }
 
-// Print out the map for debugging purposes
+// Print out the raw map for debugging purposes
 void td::Map::printMap() {
-    for (const auto& row : this->map) {
+    for (const auto& row : this->map_raw) {
         for (char val : row) {
             std::cout << val;
         }
@@ -109,12 +130,12 @@ void td::Map::printMap() {
 // Display the map in the game window
 void td::Map::renderMap(sf::RenderTarget* target) {
     for (int r=0; r<this->map.size(); r++) {
-        std::vector<char> row = this->map[r];
+        std::vector<td::Tile> row = this->map[r];
         for (int c=0; c<row.size(); c++) {
-            char val = row[c];
-            sf::RectangleShape tile = td::Shapes::rect(this->tile_size*r, this->tile_size*c,
+            td::Tile t = row[c];
+            sf::RectangleShape tile = td::Shapes::rect(this->tile_size*c, this->tile_size*r,
                                                        this->tile_size, this->tile_size);
-            switch (val) {
+            switch (t.sprite) {
                 case '0':
                     // Empty tile, skip
                     break;

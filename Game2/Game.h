@@ -2,6 +2,7 @@
 #define GAME_H
 
 #include <TDAHelper/library.hpp>
+#include "Player.h"
 
 class Game {
     private:
@@ -12,6 +13,9 @@ class Game {
         int fps;
         int pause;
         td::Map map;
+
+        // Gameplay
+        Player player;
 
         // Fonts/text
         sf::Font font;

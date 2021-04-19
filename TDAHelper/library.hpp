@@ -12,7 +12,6 @@
 #include <fstream>
 
 namespace td {
-    void test();
 
     class Text {
     public:
@@ -38,11 +37,36 @@ namespace td {
         static sf::VertexArray line(int x1, int y1, int x2, int y2, sf::Color color = sf::Color::White);
     };
 
+    class Tile {
+    public:
+        // Constructor/destructor
+        Tile();
+        Tile(char sprite, char type, int row, int col);
+        ~Tile();
+
+        // Config variables
+        char sprite{};
+        char type{};
+        int row{};
+        int col{};
+    };
+
     class Map {
     private:
-        std::vector<std::vector<char>> map;
-        int tile_size;
-        int max_allowed_tile_size;
+        char EMPTY = '`';
+        char WALL = 'w';
+        char KEY = '*';
+
+        // void setMapChars(key, value)
+        // Change the default mapping so that the user can make EMPTY = ' ', for instance.
+
+        // Game map
+        std::vector<std::vector<char>> map_raw;
+        std::vector<std::vector<td::Tile>> map;
+
+        // Tile configurations
+        int tile_size{};
+        int max_allowed_tile_size{};
 
         void initVariables();
     public:

@@ -8,7 +8,6 @@
 
 int main() {
     std::cout << "Game 2" << std::endl;
-    td::test();
     Game game = Game();
     while(game.running()) {
         if (!(game.paused()))
