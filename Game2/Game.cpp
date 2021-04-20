@@ -67,6 +67,12 @@ void Game::initWindow() {
 void Game::initMap() {
     this->map = td::Map("../assets/map/map.txt");
     this->map.setTileSize(40);
+
+    td::SpriteSheet sprite_sheet = td::SpriteSheet();
+    sprite_sheet.addSprite('1', sf::Color::Green);
+    sprite_sheet.addSprite('2', sf::Color::Red);
+    sprite_sheet.addSprite('3', sf::Color::Blue);
+    this->map.setSpriteSheet(sprite_sheet);
 }
 
 
@@ -81,7 +87,7 @@ void Game::render() {
     // Clear previous frame renders
     this->window->clear();
 
-    td::Text::print(this->window, "Hello!", {.font=this->font, .y=100, .align=td::Text::Align::CENTER});
+    // td::Text::print(this->window, "Hello!", {.font=this->font, .y=100, .align=td::Text::Align::CENTER});
 
     // Render the map
     this->map.renderMap(this->window);

@@ -1,8 +1,26 @@
 #include "library.hpp"
 
-/* General */
 
+/* Util */
 
+// Helper to locate a value within a std::vector object
+// Returns -1 if not found
+template<typename V>
+int td::Util::find(std::vector<V> vector, V val) {
+    auto it = std::find(vector.begin(), vector.end(), val);
+    if (it != vector.end()) {
+        return it - vector.begin();
+    }
+    return -1;
+}
+
+// Helper to check if a key exists within a std::map object
+template<typename K, typename V>
+bool td::Util::keyInMap(std::map<K, V> map, K key) {
+    if (map.count(key) != 0) return true;
+    return false;
+}
+//------------------------------------------------------------------------------------------------------------------
 
 
 /* Text */
@@ -31,6 +49,7 @@ void td::Text::print(sf::RenderTarget* target, const std::string &s, const td::T
     // Draw text to target window
     target->draw(text);
 }
+//------------------------------------------------------------------------------------------------------------------
 
 
 /* Shapes */
@@ -53,21 +72,40 @@ sf::VertexArray td::Shapes::line(int x1, int y1, int x2, int y2, sf::Color color
     l[1].color  = sf::Color(color);
     return l;
 }
+//------------------------------------------------------------------------------------------------------------------
 
 
 /* Tile */
 
+// Constructor
 td::Tile::Tile() = default;
+// Destructor
+td::Tile::~Tile() = default;
 
-td::Tile::Tile(char sprite, char type, int row, int col) {
-    this->sprite = sprite;
-    this->type = type;
+// Constructor + params
+td::Tile::Tile(char sprite_id, char type_id, int row, int col) {
+    this->sprite_id = sprite_id;
+    this->type_id = type_id;
     this->row = row;
     this->col = col;
 }
 
-td::Tile::~Tile() = default;
 
+/* SpriteSheet */
+
+// Constructor
+td::SpriteSheet::SpriteSheet() = default;
+// Destructor
+td::SpriteSheet::~SpriteSheet() = default;
+
+// Add a sprite to the sprite sheet
+// Creates a sprite with the given texture and maps it to the given ID
+void td::SpriteSheet::addSprite(char id, sf::Color color) {
+    sf::Sprite sprite = sf::Sprite();
+    sprite.setColor(color);
+    this->mapping[id] = sprite;
+}
+//------------------------------------------------------------------------------------------------------------------
 
 
 /* Map */
@@ -76,13 +114,14 @@ td::Tile::~Tile() = default;
 td::Map::Map() {
     this->initVariables();
 }
+// Destructor
+td::Map::~Map() = default;
+
+// Constructor + params
 td::Map::Map(const std::string& path) {
     this->initVariables();
     this->readMap(path);
 }
-
-// Destructor
-td::Map::~Map() = default;
 
 // Initialize map attributes
 void td::Map::initVariables() {
@@ -97,7 +136,7 @@ void td::Map::readMap(const std::string &path) {
     mapFile.open(path);
 
     // Create the raw map from the supplied map file
-    // Also create a tile map with encoded information
+    // Also create the game's tile map with encoded information
     std::string line;
     int r = 0;
     while (std::getline(mapFile, line)) {
@@ -117,6 +156,11 @@ void td::Map::readMap(const std::string &path) {
     mapFile.close();
 }
 
+// Set the map's sprite sheet, used to determine what to draw at each tile
+void td::Map::setSpriteSheet(const td::SpriteSheet& sheet) {
+    this->sprite_sheet = sheet;
+}
+
 // Print out the raw map for debugging purposes
 void td::Map::printMap() {
     for (const auto& row : this->map_raw) {
@@ -132,24 +176,18 @@ void td::Map::renderMap(sf::RenderTarget* target) {
     for (int r=0; r<this->map.size(); r++) {
         std::vector<td::Tile> row = this->map[r];
         for (int c=0; c<row.size(); c++) {
-            td::Tile t = row[c];
-            sf::RectangleShape tile = td::Shapes::rect(this->tile_size*c, this->tile_size*r,
+            // Grab the tile at this row and column
+            td::Tile tile = row[c];
+            // Create a corresponding graphical tile
+            sf::RectangleShape t = td::Shapes::rect(this->tile_size*c, this->tile_size*r,
                                                        this->tile_size, this->tile_size);
-            switch (t.sprite) {
-                case '0':
-                    // Empty tile, skip
-                    break;
-                case '1':
-                    tile.setFillColor(sf::Color::Green);
-                    target->draw(tile);
-                    break;
-                case '2':
-                    tile.setFillColor(sf::Color::Red);
-                    target->draw(tile);
-                    break;
-                default:
-                    tile.setFillColor(sf::Color::Blue);
-                    target->draw(tile);
+
+            // If the tile's sprite ID is mapped to a sprite, draw it
+            // Otherwise, skip this tile and draw nothing
+            if (td::Util::keyInMap(this->sprite_sheet.mapping, tile.sprite_id)) {
+                sf::Sprite sprite = this->sprite_sheet.mapping[tile.sprite_id];
+                t.setFillColor(sprite.getColor());
+                target->draw(t);
             }
         }
     }

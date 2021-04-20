@@ -1,7 +1,6 @@
 #include "Player.h"
 
 Player::Player() = default;
-
 Player::~Player() = default;
 
 void Player::setPosition(int pos_x, int pos_y) {

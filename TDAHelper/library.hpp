@@ -13,6 +13,15 @@
 
 namespace td {
 
+    class Util {
+    public:
+        template <typename V>
+        static int find(std::vector<V> vector, V val);
+        template<typename K, typename V>
+        static bool keyInMap(std::map<K, V> map, K key);
+    };
+    //------------------------------------------------------------------------------------------------------------------
+
     class Text {
     public:
         enum Align {
@@ -30,36 +39,43 @@ namespace td {
         };
         static void print(sf::RenderTarget* target, const std::string& s, const Config& config);
     };
+    //------------------------------------------------------------------------------------------------------------------
 
     class Shapes {
     public:
         static sf::RectangleShape rect(int x, int y, int width, int height, sf::Color color = sf::Color::White);
         static sf::VertexArray line(int x1, int y1, int x2, int y2, sf::Color color = sf::Color::White);
     };
+    //------------------------------------------------------------------------------------------------------------------
 
     class Tile {
     public:
         // Constructor/destructor
         Tile();
-        Tile(char sprite, char type, int row, int col);
+        Tile(char sprite_id, char type_id, int row, int col);
         ~Tile();
 
         // Config variables
-        char sprite{};
-        char type{};
+        char sprite_id{};
+        char type_id{};
         int row{};
         int col{};
     };
+    //------------------------------------------------------------------------------------------------------------------
+
+    class SpriteSheet {
+    public:
+        // Constructor/destructor
+        SpriteSheet();
+        ~SpriteSheet();
+
+        std::map<char, sf::Sprite> mapping;
+        void addSprite(char id, sf::Color color);
+    };
+    //------------------------------------------------------------------------------------------------------------------
 
     class Map {
     private:
-        char EMPTY = '`';
-        char WALL = 'w';
-        char KEY = '*';
-
-        // void setMapChars(key, value)
-        // Change the default mapping so that the user can make EMPTY = ' ', for instance.
-
         // Game map
         std::vector<std::vector<char>> map_raw;
         std::vector<std::vector<td::Tile>> map;
@@ -68,6 +84,10 @@ namespace td {
         int tile_size{};
         int max_allowed_tile_size{};
 
+        // Sprites
+        td::SpriteSheet sprite_sheet{};
+
+        // Initialization
         void initVariables();
     public:
         // Constructor/destructor
@@ -76,6 +96,7 @@ namespace td {
         ~Map();
 
         void readMap(const std::string& path);
+        void setSpriteSheet(const td::SpriteSheet& sheet);
         void printMap();
         void renderMap(sf::RenderTarget* target);
         void setTileSize(int size);
