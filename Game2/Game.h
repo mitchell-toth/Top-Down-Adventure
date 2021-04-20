@@ -7,11 +7,11 @@
 class Game {
     private:
         // Variables
-        sf::RenderWindow* window;
+        sf::RenderWindow* window{};
         sf::VideoMode videoMode;
-        sf::Event ev;
-        int fps;
-        int pause;
+        sf::Event ev{};
+        int fps{};
+        int pause{};
         td::Map map;
 
         // Gameplay

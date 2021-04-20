@@ -33,7 +33,6 @@ void Game::initVariables() {
     this->fps = 60;
     this->pause = 0;
     this->player = Player();
-    this->player.setPosition(2,2);
 }
 
 
@@ -65,9 +64,11 @@ void Game::initWindow() {
 
 // Initialize game map
 void Game::initMap() {
+    // Load in the map
     this->map = td::Map("../assets/map/map.txt");
     this->map.setTileSize(40);
 
+    // Set the map's sprite sheet and ID mapping
     td::SpriteSheet sprite_sheet = td::SpriteSheet();
     sprite_sheet.addSprite('1', sf::Color::Green);
     sprite_sheet.addSprite('2', sf::Color::Red);
@@ -79,6 +80,9 @@ void Game::initMap() {
 // Update
 void Game::update() {
     this->pollEvents();  // Poll for game loop events
+
+    // Handle player movement
+    this->player.p.move(this->map);
 }
 
 
@@ -90,12 +94,11 @@ void Game::render() {
     // td::Text::print(this->window, "Hello!", {.font=this->font, .y=100, .align=td::Text::Align::CENTER});
 
     // Render the map
-    this->map.renderMap(this->window);
-
+    this->map.draw(this->window);
     // Render the player
-    // this->window->draw(this->player.getRenderObj());
+    this->player.p.draw(this->window);
 
-    // Display on window
+    // Display what has been rendered
     this->window->display();
 }
 

@@ -46,6 +46,18 @@ namespace td {
         static sf::RectangleShape rect(int x, int y, int width, int height, sf::Color color = sf::Color::White);
         static sf::VertexArray line(int x1, int y1, int x2, int y2, sf::Color color = sf::Color::White);
     };
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    class SpriteSheet {
+    public:
+        // Constructor/destructor
+        SpriteSheet();
+        ~SpriteSheet();
+
+        std::map<char, sf::Sprite> mapping;
+        void addSprite(char id, sf::Color color);
+    };
     //------------------------------------------------------------------------------------------------------------------
 
     class Tile {
@@ -60,17 +72,11 @@ namespace td {
         char type_id{};
         int row{};
         int col{};
-    };
-    //------------------------------------------------------------------------------------------------------------------
 
-    class SpriteSheet {
-    public:
-        // Constructor/destructor
-        SpriteSheet();
-        ~SpriteSheet();
-
-        std::map<char, sf::Sprite> mapping;
-        void addSprite(char id, sf::Color color);
+        // Get tile rect
+        sf::RectangleShape getRect(int tile_size) const;
+        // Get sprite
+        sf::RectangleShape getSprite(td::SpriteSheet& sprite_sheet, int tile_size) const;
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -98,8 +104,41 @@ namespace td {
         void readMap(const std::string& path);
         void setSpriteSheet(const td::SpriteSheet& sheet);
         void printMap();
-        void renderMap(sf::RenderTarget* target);
+        void draw(sf::RenderTarget* target);
+        int getTileSize() const;
         void setTileSize(int size);
+        td::Tile getTile(int x, int y);
+    };
+    //------------------------------------------------------------------------------------------------------------------
+
+    class Player {
+    private:
+        sf::Clock clock;
+        // Position
+        float x;
+        float y;
+
+        // Movement keys
+        sf::Keyboard::Key up_key;
+        sf::Keyboard::Key down_key;
+        sf::Keyboard::Key left_key;
+        sf::Keyboard::Key right_key;
+
+        // Appearance
+        sf::Sprite sprite;
+
+        // Gameplay
+        std::vector<char> inventory;
+        int health;
+        int max_health;
+    public:
+        // Constructor/destructor
+        Player();
+        ~Player();
+
+        // Render
+        void draw(sf::RenderTarget* target) const;
+        void move(td::Map map);
     };
 }
 
