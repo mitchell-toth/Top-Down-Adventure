@@ -12,6 +12,7 @@
 #include <fstream>
 
 namespace td {
+    static sf::Clock CLOCK;
 
     class Util {
     public:
@@ -87,6 +88,9 @@ namespace td {
         std::vector<std::vector<char>> map_raw;
         std::vector<std::vector<td::Tile>> map;
 
+        // Special tile types mapper
+        std::map<int, char> types;
+
         // Tile configurations
         int tile_size{};
         int max_allowed_tile_size{};
@@ -102,29 +106,48 @@ namespace td {
         explicit Map(const std::string& path);
         ~Map();
 
+        // Special tile types
+        enum TileTypes {
+            WALL = 1,
+            DOOR = 2,
+            KEY = 3
+        };
+
+        // Read in the map
         void readMap(const std::string& path);
-        void setSpriteSheet(const td::SpriteSheet& sheet);
-        void printMap();
+
+        // Render
         void draw(sf::RenderTarget* target);
+
+        // Getters
         int getTileSize() const;
-        void setTileSize(int size);
         td::Tile getTile(int x, int y);
         std::vector<std::vector<td::Tile>> getMap();
+        char getTileType(int type);
+
+        // Setters
+        void setSpriteSheet(const td::SpriteSheet& sheet);
+        void setTileSize(int size);
+        void setTileType(char type_id, int type);
     };
     //------------------------------------------------------------------------------------------------------------------
 
     class Player {
     private:
-        sf::Clock clock;
         // Position
         float x;
         float y;
 
-        // Movement keys
+        // Size
+        int width;
+        int height;
+
+        // Movement
         sf::Keyboard::Key up_key;
-        sf::Keyboard::Key down_key;
         sf::Keyboard::Key left_key;
+        sf::Keyboard::Key down_key;
         sf::Keyboard::Key right_key;
+        float speed;
 
         // Appearance
         sf::Sprite sprite;
@@ -143,10 +166,16 @@ namespace td {
 
         // Movement and collision
         void move(td::Map& map);
-        static bool collides(td::Map& map, char type_id, int x, int y);
+        static bool collides(td::Map& map, char type_id, const sf::RectangleShape& rect);
+        void setMovementKeys(sf::Keyboard::Key up, sf::Keyboard::Key left, sf::Keyboard::Key down,
+                             sf::Keyboard::Key right);
+        void setMoveSpeed(float move_speed);
 
         // Position
         void setPosition(td::Map& map, int row, int col);
+
+        // Size
+        void setSize(int w, int h);
     };
 }
 

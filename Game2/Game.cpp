@@ -6,7 +6,7 @@ Game::Game() {
     this->initFonts();
     this->initWindow();
     this->initMap();
-    this->player.p.setPosition(this->map, 1, 1);
+    this->initPlayer();
 }
 
 
@@ -33,7 +33,7 @@ void Game::initVariables() {
     this->window = nullptr;
     this->fps = 60;
     this->pause = 0;
-    this->player = Player();
+    this->tile_size = 40;
 }
 
 
@@ -67,7 +67,7 @@ void Game::initWindow() {
 void Game::initMap() {
     // Load in the map
     this->map = td::Map("../assets/map/map.txt");
-    this->map.setTileSize(40);
+    this->map.setTileSize(this->tile_size);
 
     // Set the map's sprite sheet and ID mapping
     td::SpriteSheet sprite_sheet = td::SpriteSheet();
@@ -75,6 +75,16 @@ void Game::initMap() {
     sprite_sheet.addSprite('2', sf::Color::Red);
     sprite_sheet.addSprite('3', sf::Color::Blue);
     this->map.setSpriteSheet(sprite_sheet);
+}
+
+
+// Initialize the player
+void Game::initPlayer() {
+    this->player = Player();
+    this->player.p.setSize(this->tile_size, this->tile_size);
+    this->player.p.setPosition(this->map, 1, 1);
+    this->player.p.setMovementKeys(sf::Keyboard::W,sf::Keyboard::A,
+                                   sf::Keyboard::S, sf::Keyboard::D);
 }
 
 

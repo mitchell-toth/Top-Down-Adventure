@@ -12,7 +12,10 @@ class Game {
         sf::Event ev{};
         int fps{};
         int pause{};
+
+        // Map
         td::Map map;
+        int tile_size;
 
         // Gameplay
         Player player;
@@ -25,6 +28,7 @@ class Game {
         void initFonts();
         void initWindow();
         void initMap();
+        void initPlayer();
 
         // Game functions
         void pollEvents();

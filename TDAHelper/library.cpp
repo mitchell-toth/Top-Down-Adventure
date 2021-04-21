@@ -108,12 +108,12 @@ td::Tile::Tile(char sprite_id, char type_id, int row, int col) {
 
 // Get the tile's rectangle object
 sf::RectangleShape td::Tile::getRect(int tile_size) const {
-    return td::Shapes::rect(tile_size*this->col, tile_size*this->row, tile_size, tile_size);
+    return td::Shapes::rect(tile_size * this->col, tile_size * this->row, tile_size, tile_size);
 }
 
 // Get the tile's sprite
 sf::RectangleShape td::Tile::getSprite(td::SpriteSheet& sprite_sheet, int tile_size) const {
-    sf::RectangleShape t = td::Shapes::rect(tile_size*this->col, tile_size*this->row, tile_size, tile_size);
+    sf::RectangleShape t = this->getRect(tile_size);
     // If the tile's sprite ID is mapped to a sprite, draw it
     // Otherwise, skip this tile and draw nothing (a transparent rect)
     if (td::Util::keyInMap(sprite_sheet.mapping, this->sprite_id)) {
@@ -127,7 +127,7 @@ sf::RectangleShape td::Tile::getSprite(td::SpriteSheet& sprite_sheet, int tile_s
 
 // Get the x and y locations of the tile
 std::vector<int> td::Tile::getPosition(int tile_size) const {
-    return std::vector<int>({this->col*tile_size, this->row*tile_size});
+    return std::vector<int>({this->col * tile_size, this->row * tile_size});
 }
 //------------------------------------------------------------------------------------------------------------------
 
@@ -149,8 +149,12 @@ td::Map::Map(const std::string& path) {
 
 // Initialize map attributes
 void td::Map::initVariables() {
-    this->tile_size = 50;
     this->max_allowed_tile_size = 1000;
+    this->types = {
+        {td::Map::TileTypes::WALL, 'w'},
+        {td::Map::TileTypes::DOOR, 'd'},
+        {td::Map::TileTypes::KEY, 'k'}
+    };
 }
 
 // Read in a file path for the game map and translate it to a 2D vector.
@@ -180,21 +184,6 @@ void td::Map::readMap(const std::string &path) {
     mapFile.close();
 }
 
-// Set the map's sprite sheet, used to determine what to draw at each tile
-void td::Map::setSpriteSheet(const td::SpriteSheet& sheet) {
-    this->sprite_sheet = sheet;
-}
-
-// Print out the raw map for debugging purposes
-void td::Map::printMap() {
-    for (const auto& row : this->map_raw) {
-        for (char val : row) {
-            std::cout << val;
-        }
-        std::cout << std::endl;
-    }
-}
-
 // Display the map in the game window
 void td::Map::draw(sf::RenderTarget* target) {
     for (const auto& row : this->map) {
@@ -205,17 +194,9 @@ void td::Map::draw(sf::RenderTarget* target) {
     }
 }
 
-// Get the size of map tiles, in pixels
+// Get the tile size
 int td::Map::getTileSize() const {
     return this->tile_size;
-}
-
-// Set the size of the map tiles, in pixels
-void td::Map::setTileSize(int size) {
-    if (size < 0 || size > this->max_allowed_tile_size) {
-        throw std::invalid_argument("Invalid tile size!");
-    }
-    this->tile_size = size;
 }
 
 // Retrieve the tile at a given x and y location
@@ -229,6 +210,29 @@ td::Tile td::Map::getTile(int x, int y) {
 std::vector<std::vector<td::Tile>> td::Map::getMap() {
     return this->map;
 }
+
+// Get the char tile type_id from an integer tile type
+char td::Map::getTileType(int type) {
+    return this->types[type];
+}
+
+// Set the map's sprite sheet, used to determine what to draw at each tile
+void td::Map::setSpriteSheet(const td::SpriteSheet& sheet) {
+    this->sprite_sheet = sheet;
+}
+
+// Set the size of the map tiles, in pixels
+void td::Map::setTileSize(int size) {
+    if (size < 0 || size > this->max_allowed_tile_size) {
+        throw std::invalid_argument("Invalid tile size!");
+    }
+    this->tile_size = size;
+}
+
+// Set a special tile type, whether by overwriting a default one or creating a new one
+void td::Map::setTileType(char type_id, int type) {
+    this->types[type] = type_id;
+}
 //------------------------------------------------------------------------------------------------------------------
 
 
@@ -236,14 +240,22 @@ std::vector<std::vector<td::Tile>> td::Map::getMap() {
 
 // Constructor
 td::Player::Player() {
+    // Position
     this->x = 0;
     this->y = 0;
 
-    this->up_key = sf::Keyboard::W;
-    this->down_key = sf::Keyboard::S;
-    this->left_key = sf::Keyboard::A;
-    this->right_key = sf::Keyboard::D;
+    // Size
+    this->width = 40;
+    this->height = 40;
 
+    // Movement
+    this->up_key = sf::Keyboard::Up;
+    this->left_key = sf::Keyboard::Left;
+    this->down_key = sf::Keyboard::Down;
+    this->right_key = sf::Keyboard::Right;
+    this->speed = 50;
+
+    // Gameplay
     this->max_health = 100;
     this->health = this->max_health;
     this->inventory = std::vector<char>();
@@ -253,7 +265,8 @@ td::Player::~Player() = default;
 
 // Draw the player
 void td::Player::draw(sf::RenderTarget* target) const {
-    sf::RectangleShape rect = td::Shapes::rect((int)this->x, (int)this->y, 40, 40);
+    sf::RectangleShape rect = td::Shapes::rect((int)this->x, (int)this->y,
+                                               (int)this->width, (int)this->height);
     rect.setFillColor(sf::Color::Yellow);
     target->draw(rect);
 }
@@ -262,27 +275,28 @@ void td::Player::draw(sf::RenderTarget* target) const {
 // Upon correct key presses, update the player's position
 void td::Player::move(td::Map& map) {
     // Get time delta
-    float elapsed = clock.restart().asSeconds();
-    float speed = 50;
+    float elapsed = td::CLOCK.restart().asSeconds();
 
     float new_x = this->x;
     float new_y = this->y;
 
     // Handle keyboard inputs
     if (sf::Keyboard::isKeyPressed(this->up_key))
-        new_y -= speed * elapsed;
+        new_y -= this->speed * elapsed;
     if (sf::Keyboard::isKeyPressed(this->down_key))
-        new_y += speed * elapsed;
+        new_y += this->speed * elapsed;
     if (sf::Keyboard::isKeyPressed(this->left_key))
-        new_x -= speed * elapsed;
+        new_x -= this->speed * elapsed;
     if (sf::Keyboard::isKeyPressed(this->right_key))
-        new_x += speed * elapsed;
+        new_x += this->speed * elapsed;
 
     // Handle collisions with walls
     // If there's no collision, then move the player. Otherwise, ignore the movement
-    if (!td::Player::collides(map, 'w', (int)this->x, (int)new_y))
+    if (!td::Player::collides(map, map.getTileType(td::Map::TileTypes::WALL),
+                              td::Shapes::rect((int)this->x, (int)new_y, this->width, this->height)))
         this->y = new_y;
-    if (!td::Player::collides(map, 'w', (int)new_x, (int)this->y))
+    if (!td::Player::collides(map, map.getTileType(td::Map::TileTypes::WALL),
+                              td::Shapes::rect((int)new_x, (int)this->y, this->width, this->height)))
         this->x = new_x;
 }
 
@@ -290,12 +304,9 @@ void td::Player::move(td::Map& map) {
 // Look at all tiles around a given location (x,y) and check if the current location
 //  intersects with any surrounding tiles of a specific type.
 // Looks in a 3x3 tile grid around the location given, with center at the location's top-left corner tile
-bool td::Player::collides(td::Map& map, char type_id, int x, int y) {
-    // Get the location's bounding box
-    sf::RectangleShape p_rect = td::Shapes::rect(x, y, map.getTileSize(), map.getTileSize());
-
+bool td::Player::collides(td::Map& map, char type_id, const sf::RectangleShape& rect) {
     // Get the tile at the location's top-left corner
-    td::Tile current_tile = map.getTile(x, y);
+    td::Tile current_tile = map.getTile(rect.getPosition().x, rect.getPosition().y);
     // Setup to look at the tiles around (and at) this current tile, in a 3x3 grid if possible
     // If the location is at the edge of the map, then reduce the size of the search to avoid Index errors
     int row = current_tile.row;
@@ -309,7 +320,7 @@ bool td::Player::collides(td::Map& map, char type_id, int x, int y) {
     for (int r=r_start; r<=r_end; r++) {
         for (int c=c_start; c<=c_end; c++) {
             td::Tile tile = map.getMap()[r][c];
-            if (tile.type_id == 'w' && p_rect.getGlobalBounds().intersects(tile.getRect(map.getTileSize()).getGlobalBounds())) {
+            if (tile.type_id == type_id && rect.getGlobalBounds().intersects(tile.getRect(map.getTileSize()).getGlobalBounds())) {
                 return true;  // Collision!
             }
         }
@@ -317,10 +328,31 @@ bool td::Player::collides(td::Map& map, char type_id, int x, int y) {
     return false;  // No collision
 }
 
+
+// Alter the default player movement keys
+void td::Player::setMovementKeys(sf::Keyboard::Key up, sf::Keyboard::Key left, sf::Keyboard::Key down,
+                                 sf::Keyboard::Key right) {
+    this->up_key = up;
+    this->left_key = left;
+    this->down_key = down;
+    this->right_key = right;
+}
+
+// Set the player's speed
+void td::Player::setMoveSpeed(float move_speed) {
+    this->speed = move_speed;
+}
+
 // Set the player's position to be a specific map row and column
 void td::Player::setPosition(td::Map& map, int row, int col) {
     td::Tile tile = map.getMap()[row][col];
     std::vector<int> pos = tile.getPosition(map.getTileSize());
-    this->x = pos[0];
-    this->y = pos[1];
+    this->x = pos[0] + ((float)(map.getTileSize()-this->width)/2);
+    this->y = pos[1] + ((float)(map.getTileSize()-this->height)/2);
+}
+
+// Set the player's width and height
+void td::Player::setSize(int w, int h) {
+    this->width = w;
+    this->height = h;
 }
