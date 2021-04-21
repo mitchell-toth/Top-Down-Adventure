@@ -230,8 +230,36 @@ void td::Map::setTileSize(int size) {
 }
 
 // Set a special tile type, whether by overwriting a default one or creating a new one
-void td::Map::setTileType(char type_id, int type) {
+void td::Map::setTileType(int type, char type_id) {
     this->types[type] = type_id;
+
+}
+
+// Look at all tiles around a given location (x,y) and check if the current location
+//  intersects with any surrounding tiles of a specific type.
+// Looks in a 3x3 tile grid around the location given, with center at the location's top-left corner tile
+bool td::Map::collides(td::Map& map, char type_id, const sf::RectangleShape& rect) {
+    // Get the tile at the location's top-left corner
+    td::Tile current_tile = map.getTile(rect.getPosition().x, rect.getPosition().y);
+    // Setup to look at the tiles around (and at) this current tile, in a 3x3 grid if possible
+    // If the location is at the edge of the map, then reduce the size of the search to avoid Index errors
+    int row = current_tile.row;
+    int col = current_tile.col;
+    int r_start = row-1; if (row == 0) r_start = row;
+    int c_start = col-1; if (col == 0) c_start = col;
+    int r_end = row+1; if (row == map.getMap().size()-1) r_end = row;
+    int c_end = col+1; if (col == map.getMap()[0].size()-1) c_end = col;
+
+    // Now iterate over the tiles, checking if the given location's bounding box intersects one of them
+    for (int r=r_start; r<=r_end; r++) {
+        for (int c=c_start; c<=c_end; c++) {
+            td::Tile tile = map.getMap()[r][c];
+            if (tile.type_id == type_id && rect.getGlobalBounds().intersects(tile.getRect(map.getTileSize()).getGlobalBounds())) {
+                return true;  // Collision!
+            }
+        }
+    }
+    return false;  // No collision
 }
 //------------------------------------------------------------------------------------------------------------------
 
@@ -280,54 +308,38 @@ void td::Player::move(td::Map& map) {
     float new_x = this->x;
     float new_y = this->y;
 
-    // Handle keyboard inputs
-    if (sf::Keyboard::isKeyPressed(this->up_key))
-        new_y -= this->speed * elapsed;
-    if (sf::Keyboard::isKeyPressed(this->down_key))
-        new_y += this->speed * elapsed;
-    if (sf::Keyboard::isKeyPressed(this->left_key))
-        new_x -= this->speed * elapsed;
-    if (sf::Keyboard::isKeyPressed(this->right_key))
-        new_x += this->speed * elapsed;
-
-    // Handle collisions with walls
-    // If there's no collision, then move the player. Otherwise, ignore the movement
-    if (!td::Player::collides(map, map.getTileType(td::Map::TileTypes::WALL),
-                              td::Shapes::rect((int)this->x, (int)new_y, this->width, this->height)))
-        this->y = new_y;
-    if (!td::Player::collides(map, map.getTileType(td::Map::TileTypes::WALL),
-                              td::Shapes::rect((int)new_x, (int)this->y, this->width, this->height)))
-        this->x = new_x;
-}
-
-
-// Look at all tiles around a given location (x,y) and check if the current location
-//  intersects with any surrounding tiles of a specific type.
-// Looks in a 3x3 tile grid around the location given, with center at the location's top-left corner tile
-bool td::Player::collides(td::Map& map, char type_id, const sf::RectangleShape& rect) {
-    // Get the tile at the location's top-left corner
-    td::Tile current_tile = map.getTile(rect.getPosition().x, rect.getPosition().y);
-    // Setup to look at the tiles around (and at) this current tile, in a 3x3 grid if possible
-    // If the location is at the edge of the map, then reduce the size of the search to avoid Index errors
-    int row = current_tile.row;
-    int col = current_tile.col;
-    int r_start = row-1; if (row == 0) r_start = row;
-    int c_start = col-1; if (col == 0) c_start = col;
-    int r_end = row+1; if (row == map.getMap().size()-1) r_end = row;
-    int c_end = col+1; if (col == map.getMap()[0].size()-1) c_end = col;
-
-    // Now iterate over the tiles, checking if the given location's bounding box intersects one of them
-    for (int r=r_start; r<=r_end; r++) {
-        for (int c=c_start; c<=c_end; c++) {
-            td::Tile tile = map.getMap()[r][c];
-            if (tile.type_id == type_id && rect.getGlobalBounds().intersects(tile.getRect(map.getTileSize()).getGlobalBounds())) {
-                return true;  // Collision!
-            }
-        }
+    // Handle keyboard inputs:
+    // Each handler section optimistically sets the new coordinate position.
+    // If that position turns out to intersect with a wall, then instead move the remaining distance.
+    // This has the effect of clamping the position to align with the tile size.
+    if (sf::Keyboard::isKeyPressed(this->up_key)) {     // UP
+        new_y = this->y - this->speed * elapsed;
+        sf::RectangleShape rect = td::Shapes::rect((int)new_x, (int)new_y, this->width, this->height);
+        if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
+            new_y = this->y - (float)((int)this->y % map.getTileSize());
     }
-    return false;  // No collision
-}
+    if (sf::Keyboard::isKeyPressed(this->down_key)) {   // DOWN
+        new_y = this->y + this->speed * elapsed;
+        sf::RectangleShape rect = td::Shapes::rect((int)new_x, (int)new_y, this->width, this->height);
+        if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
+            new_y = this->y + ((float)((int)(map.getTileSize() - ((int)this->y % map.getTileSize())) % map.getTileSize()));
+    }
+    if (sf::Keyboard::isKeyPressed(this->left_key)) {   // LEFT
+        new_x = this->x - this->speed * elapsed;
+        sf::RectangleShape rect = td::Shapes::rect((int)new_x, (int)new_y, this->width, this->height);
+        if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
+            new_x = this->x - (float)((int)this->x % map.getTileSize());
+    }
+    if (sf::Keyboard::isKeyPressed(this->right_key)) {  // RIGHT
+        new_x = this->x + this->speed * elapsed;
+        sf::RectangleShape rect = td::Shapes::rect((int)new_x, (int)new_y, this->width, this->height);
+        if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
+            new_x = this->x + ((float)((int)(map.getTileSize() - ((int)this->x % map.getTileSize())) % map.getTileSize()));
+    }
 
+    this->x = std::floor(new_x);
+    this->y = std::floor(new_y);
+}
 
 // Alter the default player movement keys
 void td::Player::setMovementKeys(sf::Keyboard::Key up, sf::Keyboard::Key left, sf::Keyboard::Key down,
@@ -349,6 +361,14 @@ void td::Player::setPosition(td::Map& map, int row, int col) {
     std::vector<int> pos = tile.getPosition(map.getTileSize());
     this->x = pos[0] + ((float)(map.getTileSize()-this->width)/2);
     this->y = pos[1] + ((float)(map.getTileSize()-this->height)/2);
+}
+
+// Get the player's position
+// Optionally set 'center' to true to get the position from the player's center
+sf::Vector2f td::Player::getPosition(bool center) const {
+    if (center)
+        return {this->x + ((float)this->width/2), this->y + ((float)this->height/2)};
+    return {this->x, this->y};
 }
 
 // Set the player's width and height

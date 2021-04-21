@@ -34,6 +34,7 @@ void Game::initVariables() {
     this->fps = 60;
     this->pause = 0;
     this->tile_size = 40;
+    this->view = sf::View();
 }
 
 
@@ -68,6 +69,7 @@ void Game::initMap() {
     // Load in the map
     this->map = td::Map("../assets/map/map.txt");
     this->map.setTileSize(this->tile_size);
+    // this->map.setTileType(td::Map::TileTypes::WALL, 'w');
 
     // Set the map's sprite sheet and ID mapping
     td::SpriteSheet sprite_sheet = td::SpriteSheet();
@@ -85,6 +87,7 @@ void Game::initPlayer() {
     this->player.p.setPosition(this->map, 1, 1);
     this->player.p.setMovementKeys(sf::Keyboard::W,sf::Keyboard::A,
                                    sf::Keyboard::S, sf::Keyboard::D);
+    this->player.p.setMoveSpeed(200);
 }
 
 
@@ -103,6 +106,13 @@ void Game::render() {
     this->window->clear();
 
     // td::Text::print(this->window, "Hello!", {.font=this->font, .y=100, .align=td::Text::Align::CENTER});
+
+    this->view.reset(sf::FloatRect(0, 0, this->videoMode.width, this->videoMode.height));
+    //this->view.rotate(45);
+    //this->view.setViewport(sf::FloatRect(0.f, 0.f, 0.5f, 1.f));
+    this->view.setCenter(this->player.p.getPosition(true));
+    //this->view.zoom(0.5);
+    this->window->setView(this->view);
 
     // Render the map
     this->map.draw(this->window);

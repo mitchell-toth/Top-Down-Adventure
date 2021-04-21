@@ -10,6 +10,7 @@ class Game {
         sf::RenderWindow* window{};
         sf::VideoMode videoMode;
         sf::Event ev{};
+        sf::View view{};
         int fps{};
         int pause{};
 

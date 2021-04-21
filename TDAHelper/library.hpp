@@ -10,6 +10,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
 namespace td {
     static sf::Clock CLOCK;
@@ -128,7 +129,10 @@ namespace td {
         // Setters
         void setSpriteSheet(const td::SpriteSheet& sheet);
         void setTileSize(int size);
-        void setTileType(char type_id, int type);
+        void setTileType(int type, char type_id);
+
+        // Collision
+        static bool collides(td::Map& map, char type_id, const sf::RectangleShape& rect);
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -166,13 +170,13 @@ namespace td {
 
         // Movement and collision
         void move(td::Map& map);
-        static bool collides(td::Map& map, char type_id, const sf::RectangleShape& rect);
         void setMovementKeys(sf::Keyboard::Key up, sf::Keyboard::Key left, sf::Keyboard::Key down,
                              sf::Keyboard::Key right);
         void setMoveSpeed(float move_speed);
 
         // Position
         void setPosition(td::Map& map, int row, int col);
+        sf::Vector2f getPosition(bool center=false) const;
 
         // Size
         void setSize(int w, int h);
