@@ -6,6 +6,7 @@ Game::Game() {
     this->initFonts();
     this->initWindow();
     this->initMap();
+    this->player.p.setPosition(this->map, 1, 1);
 }
 
 

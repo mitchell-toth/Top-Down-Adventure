@@ -77,6 +77,7 @@ namespace td {
         sf::RectangleShape getRect(int tile_size) const;
         // Get sprite
         sf::RectangleShape getSprite(td::SpriteSheet& sprite_sheet, int tile_size) const;
+        std::vector<int> getPosition(int tile_size) const;
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -108,6 +109,7 @@ namespace td {
         int getTileSize() const;
         void setTileSize(int size);
         td::Tile getTile(int x, int y);
+        std::vector<std::vector<td::Tile>> getMap();
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -138,7 +140,13 @@ namespace td {
 
         // Render
         void draw(sf::RenderTarget* target) const;
-        void move(td::Map map);
+
+        // Movement and collision
+        void move(td::Map& map);
+        static bool collides(td::Map& map, char type_id, int x, int y);
+
+        // Position
+        void setPosition(td::Map& map, int row, int col);
     };
 }
 
