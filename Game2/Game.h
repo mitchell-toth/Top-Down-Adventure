@@ -16,7 +16,8 @@ class Game {
 
         // Map
         td::Map map;
-        int tile_size;
+        int tile_size{};
+        sf::Color background_color;
 
         // Gameplay
         Player player;

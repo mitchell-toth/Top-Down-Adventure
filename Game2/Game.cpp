@@ -33,7 +33,7 @@ void Game::initVariables() {
     this->window = nullptr;
     this->fps = 60;
     this->pause = 0;
-    this->tile_size = 40;
+    this->tile_size = 8;
     this->view = sf::View();
 }
 
@@ -48,10 +48,11 @@ void Game::initFonts() {
 void Game::initWindow() {
     this->videoMode.width = 800;
     this->videoMode.height = 800;
+    this->background_color = sf::Color(158, 154, 229);
 
     // Allocate the window
     this->window = new sf::RenderWindow(
-            this->videoMode, "Title", sf::Style::Titlebar | sf::Style::Close);
+            this->videoMode, "World's Hardest Game", sf::Style::Titlebar | sf::Style::Close);
 
     // Center the window
     this->window->setPosition(sf::Vector2i(
@@ -60,7 +61,7 @@ void Game::initWindow() {
     ));
 
     // Set frame rate
-    this->window->setFramerateLimit(60);
+    this->window->setFramerateLimit(this->fps);
 }
 
 
@@ -68,14 +69,16 @@ void Game::initWindow() {
 void Game::initMap() {
     // Load in the map
     this->map = td::Map("../assets/map/map.txt");
-    this->map.setTileSize(this->tile_size);
-    // this->map.setTileType(td::Map::TileTypes::WALL, 'w');
+    // this->map.setTileSize(this->tile_size);
+    this->map.setTileType(td::Map::TileTypes::WALL, '#');
 
     // Set the map's sprite sheet and ID mapping
     td::SpriteSheet sprite_sheet = td::SpriteSheet();
-    sprite_sheet.addSprite('1', sf::Color::Green);
-    sprite_sheet.addSprite('2', sf::Color::Red);
-    sprite_sheet.addSprite('3', sf::Color::Blue);
+    sprite_sheet.addSprite('#', sf::Color::Transparent);
+    sprite_sheet.addSprite('w', sf::Color::Black);
+    sprite_sheet.addSprite('`', sf::Color(200, 200, 200));
+    sprite_sheet.addSprite('\'', sf::Color::White);
+    sprite_sheet.addSprite('e', sf::Color(139, 246, 153));
     this->map.setSpriteSheet(sprite_sheet);
 }
 
@@ -83,11 +86,12 @@ void Game::initMap() {
 // Initialize the player
 void Game::initPlayer() {
     this->player = Player();
-    this->player.p.setSize(this->tile_size, this->tile_size);
+    //this->player.p.setSize(this->tile_size, this->tile_size);
     this->player.p.setPosition(this->map, 1, 1);
     this->player.p.setMovementKeys(sf::Keyboard::W,sf::Keyboard::A,
                                    sf::Keyboard::S, sf::Keyboard::D);
-    this->player.p.setMoveSpeed(200);
+    this->player.p.setMoveSpeed(100);
+    this->player.p.setColor(sf::Color::Red);
 }
 
 
@@ -103,15 +107,15 @@ void Game::update() {
 // Render
 void Game::render() {
     // Clear previous frame renders
-    this->window->clear();
+    this->window->clear(this->background_color);
 
     // td::Text::print(this->window, "Hello!", {.font=this->font, .y=100, .align=td::Text::Align::CENTER});
 
     this->view.reset(sf::FloatRect(0, 0, this->videoMode.width, this->videoMode.height));
-    //this->view.rotate(45);
+    // this->view.rotate(5);
     //this->view.setViewport(sf::FloatRect(0.f, 0.f, 0.5f, 1.f));
     this->view.setCenter(this->player.p.getPosition(true));
-    //this->view.zoom(0.5);
+    this->view.zoom(0.25);
     this->window->setView(this->view);
 
     // Render the map

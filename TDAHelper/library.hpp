@@ -14,6 +14,7 @@
 
 namespace td {
     static sf::Clock CLOCK;
+    static const int DEFAULT_TILE_SIZE = 8;
 
     class Util {
     public:
@@ -76,10 +77,10 @@ namespace td {
         int col{};
 
         // Get tile rect
-        sf::RectangleShape getRect(int tile_size) const;
+        sf::RectangleShape getRect(int tile_size = DEFAULT_TILE_SIZE) const;
         // Get sprite
-        sf::RectangleShape getSprite(td::SpriteSheet& sprite_sheet, int tile_size) const;
-        std::vector<int> getPosition(int tile_size) const;
+        sf::RectangleShape getSprite(td::SpriteSheet& sprite_sheet, int tile_size = DEFAULT_TILE_SIZE) const;
+        std::vector<int> getPosition(int tile_size = DEFAULT_TILE_SIZE) const;
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -146,6 +147,9 @@ namespace td {
         int width;
         int height;
 
+        // Color
+        sf::Color color;
+
         // Movement
         sf::Keyboard::Key up_key;
         sf::Keyboard::Key left_key;
@@ -167,6 +171,7 @@ namespace td {
 
         // Render
         void draw(sf::RenderTarget* target) const;
+        void setColor(sf::Color c);
 
         // Movement and collision
         void move(td::Map& map);
