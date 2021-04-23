@@ -91,7 +91,7 @@ namespace td {
         std::vector<std::vector<td::Tile>> map;
 
         // Special tile types mapper
-        std::map<int, char> types;
+        std::map<int, std::vector<char>> tile_types;
 
         // Tile configurations
         int tile_size{};
@@ -99,6 +99,10 @@ namespace td {
 
         // Sprites
         td::SpriteSheet sprite_sheet{};
+
+        // Player
+        int starting_player_row{};
+        int starting_player_col{};
 
         // Initialization
         void initVariables();
@@ -111,8 +115,9 @@ namespace td {
         // Special tile types
         enum TileTypes {
             WALL = 1,
-            DOOR = 2,
-            KEY = 3
+            START = 2,
+            DOOR = 3,
+            KEY = 4
         };
 
         // Read in the map
@@ -125,15 +130,16 @@ namespace td {
         int getTileSize() const;
         td::Tile getTile(int x, int y);
         std::vector<std::vector<td::Tile>> getMap();
-        char getTileType(int type);
+        std::vector<char> getTileType(int type);
+        std::vector<int> getPlayerStartPosition();
 
         // Setters
         void setSpriteSheet(const td::SpriteSheet& sheet);
         void setTileSize(int size);
-        void setTileType(int type, char type_id);
+        void setTileType(int type, std::vector<char> type_id);
 
         // Collision
-        static bool collides(td::Map& map, char type_id, const sf::RectangleShape& rect);
+        static bool collides(td::Map& map, const std::vector<char>& type_ids, const sf::RectangleShape& rect);
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -180,12 +186,14 @@ namespace td {
         void setMoveSpeed(float move_speed);
 
         // Position
-        void setPosition(td::Map& map, int row, int col);
+        void setStartingPosition(td::Map& map);
         sf::Vector2f getPosition(bool center=false) const;
 
         // Size
         void setSize(int w, int h);
     };
+    //------------------------------------------------------------------------------------------------------------------
+
 }
 
 #endif //ENGINE_LIBRARY_HPP

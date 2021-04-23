@@ -70,7 +70,7 @@ void Game::initMap() {
     // Load in the map
     this->map = td::Map("../assets/map/map.txt");
     // this->map.setTileSize(this->tile_size);
-    this->map.setTileType(td::Map::TileTypes::WALL, '#');
+    this->map.setTileType(td::Map::TileTypes::WALL, {'#', '|'});
 
     // Set the map's sprite sheet and ID mapping
     td::SpriteSheet sprite_sheet = td::SpriteSheet();
@@ -79,6 +79,7 @@ void Game::initMap() {
     sprite_sheet.addSprite('`', sf::Color(200, 200, 200));
     sprite_sheet.addSprite('\'', sf::Color::White);
     sprite_sheet.addSprite('e', sf::Color(139, 246, 153));
+    sprite_sheet.addSprite('a', sf::Color::Yellow);
     this->map.setSpriteSheet(sprite_sheet);
 }
 
@@ -87,7 +88,7 @@ void Game::initMap() {
 void Game::initPlayer() {
     this->player = Player();
     //this->player.p.setSize(this->tile_size, this->tile_size);
-    this->player.p.setPosition(this->map, 1, 1);
+    this->player.p.setStartingPosition(this->map);
     this->player.p.setMovementKeys(sf::Keyboard::W,sf::Keyboard::A,
                                    sf::Keyboard::S, sf::Keyboard::D);
     this->player.p.setMoveSpeed(100);

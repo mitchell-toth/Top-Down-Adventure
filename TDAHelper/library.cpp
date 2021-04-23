@@ -7,9 +7,7 @@
 template<typename V>
 int td::Util::find(std::vector<V> vector, V val) {
     auto it = std::find(vector.begin(), vector.end(), val);
-    if (it != vector.end()) {
-        return it - vector.begin();
-    }
+    if (it != vector.end()) return it - vector.begin();
     return -1;
 }
 
@@ -151,11 +149,14 @@ td::Map::Map(const std::string& path) {
 void td::Map::initVariables() {
     this->tile_size = DEFAULT_TILE_SIZE;
     this->max_allowed_tile_size = 1000;
-    this->types = {
-        {td::Map::TileTypes::WALL, 'w'},
-        {td::Map::TileTypes::DOOR, 'd'},
-        {td::Map::TileTypes::KEY, 'k'}
+    this->tile_types = {
+            {td::Map::TileTypes::WALL, {'w'}},
+            {td::Map::TileTypes::START, {'s'}},
+            {td::Map::TileTypes::DOOR, {'d'}},
+            {td::Map::TileTypes::KEY, {'k'}}
     };
+    this->starting_player_row = 0;
+    this->starting_player_col = 0;
 }
 
 // Read in a file path for the game map and translate it to a 2D vector.
@@ -163,6 +164,8 @@ void td::Map::readMap(const std::string &path) {
     // Read in a file
     std::ifstream mapFile;
     mapFile.open(path);
+
+    bool starting_position_set = false;
 
     // Create the raw map from the supplied map file
     // Also create the game's tile map with encoded information
@@ -177,6 +180,14 @@ void td::Map::readMap(const std::string &path) {
             this->map_raw[r].emplace_back(sprite_id);
             this->map_raw[r].emplace_back(type_id);
 
+            if (td::Util::find(this->getTileType(td::Map::TileTypes::START), type_id) != -1) {
+                if (starting_position_set) {
+                    throw std::invalid_argument("Error: Multiple starting positions given. Only one allowed.");
+                }
+                this->starting_player_row = r;
+                this->starting_player_col = (int)c/2;
+                starting_position_set = true;
+            }
             td::Tile t = td::Tile(sprite_id, type_id, r, (int)c/2);
             this->map[r].emplace_back(t);
         }
@@ -213,8 +224,16 @@ std::vector<std::vector<td::Tile>> td::Map::getMap() {
 }
 
 // Get the char tile type_id from an integer tile type
-char td::Map::getTileType(int type) {
-    return this->types[type];
+std::vector<char> td::Map::getTileType(int type) {
+    return this->tile_types[type];
+}
+
+// Get player starting row and column
+std::vector<int> td::Map::getPlayerStartPosition() {
+    std::vector<int> pos = std::vector<int>();
+    pos.emplace_back(this->starting_player_row);
+    pos.emplace_back(this->starting_player_col);
+    return pos;
 }
 
 // Set the map's sprite sheet, used to determine what to draw at each tile
@@ -231,15 +250,14 @@ void td::Map::setTileSize(int size) {
 }
 
 // Set a special tile type, whether by overwriting a default one or creating a new one
-void td::Map::setTileType(int type, char type_id) {
-    this->types[type] = type_id;
-
+void td::Map::setTileType(int type, std::vector<char> type_ids) {
+    this->tile_types[type] = std::move(type_ids);
 }
 
 // Look at all tiles around a given location (x,y) and check if the current location
 //  intersects with any surrounding tiles of a specific type.
 // Looks in a 3x3 tile grid around the location given, with center at the location's top-left corner tile
-bool td::Map::collides(td::Map& map, char type_id, const sf::RectangleShape& rect) {
+bool td::Map::collides(td::Map& map, const std::vector<char>& type_ids, const sf::RectangleShape& rect) {
     // Get the tile at the location's top-left corner
     td::Tile current_tile = map.getTile(rect.getPosition().x, rect.getPosition().y);
     // Setup to look at the tiles around (and at) this current tile, in a 3x3 grid if possible
@@ -255,7 +273,8 @@ bool td::Map::collides(td::Map& map, char type_id, const sf::RectangleShape& rec
     for (int r=r_start; r<=r_end; r++) {
         for (int c=c_start; c<=c_end; c++) {
             td::Tile tile = map.getMap()[r][c];
-            if (tile.type_id == type_id && rect.getGlobalBounds().intersects(tile.getRect(map.getTileSize()).getGlobalBounds())) {
+            if ((td::Util::find(type_ids, tile.type_id) != -1) &&
+                rect.getGlobalBounds().intersects(tile.getRect(map.getTileSize()).getGlobalBounds())) {
                 return true;  // Collision!
             }
         }
@@ -365,8 +384,10 @@ void td::Player::setMoveSpeed(float move_speed) {
 }
 
 // Set the player's position to be a specific map row and column
-void td::Player::setPosition(td::Map& map, int row, int col) {
-    td::Tile tile = map.getMap()[row][col];
+void td::Player::setStartingPosition(td::Map& map) {
+    std::vector<int> starting_pos = map.getPlayerStartPosition();
+    td::Tile tile = map.getMap()[starting_pos[0]][starting_pos[1]];
+
     std::vector<int> pos = tile.getPosition(map.getTileSize());
     this->x = pos[0] + ((float)(map.getTileSize()-this->width)/2);
     this->y = pos[1] + ((float)(map.getTileSize()-this->height)/2);
@@ -385,3 +406,4 @@ void td::Player::setSize(int w, int h) {
     this->width = w;
     this->height = h;
 }
+//------------------------------------------------------------------------------------------------------------------
