@@ -124,8 +124,8 @@ sf::RectangleShape td::Tile::getSprite(td::SpriteSheet& sprite_sheet, int tile_s
 }
 
 // Get the x and y locations of the tile
-std::vector<int> td::Tile::getPosition(int tile_size) const {
-    return std::vector<int>({this->col * tile_size, this->row * tile_size});
+sf::Vector2i td::Tile::getPosition(int tile_size) const {
+    return {this->col * tile_size, this->row * tile_size};
 }
 //------------------------------------------------------------------------------------------------------------------
 
@@ -155,17 +155,18 @@ void td::Map::initVariables() {
             {td::Map::TileTypes::DOOR, {'d'}},
             {td::Map::TileTypes::KEY, {'k'}}
     };
-    this->starting_player_row = 0;
-    this->starting_player_col = 0;
+    this->player_start_row = 0;
+    this->player_start_col = 0;
 }
 
-// Read in a file path for the game map and translate it to a 2D vector.
+// Read in a file path for the game map and translate it to a 2D vector
 void td::Map::readMap(const std::string &path) {
     // Read in a file
     std::ifstream mapFile;
     mapFile.open(path);
 
-    bool starting_position_set = false;
+    // Boolean to enforce that only one start tile is specified in the map
+    bool start_tile_set = false;
 
     // Create the raw map from the supplied map file
     // Also create the game's tile map with encoded information
@@ -180,16 +181,18 @@ void td::Map::readMap(const std::string &path) {
             this->map_raw[r].emplace_back(sprite_id);
             this->map_raw[r].emplace_back(type_id);
 
+            // Make a tile at this location
+            td::Tile tile = td::Tile(sprite_id, type_id, r, (int)c/2);
+            // Check if this is a starting tile. If so, mark it. Only one start tile allowed
             if (td::Util::find(this->getTileType(td::Map::TileTypes::START), type_id) != -1) {
-                if (starting_position_set) {
+                if (start_tile_set) {
                     throw std::invalid_argument("Error: Multiple starting positions given. Only one allowed.");
                 }
-                this->starting_player_row = r;
-                this->starting_player_col = (int)c/2;
-                starting_position_set = true;
+                this->player_start_row = r;
+                this->player_start_col = (int)c/2;
+                start_tile_set = true;
             }
-            td::Tile t = td::Tile(sprite_id, type_id, r, (int)c/2);
-            this->map[r].emplace_back(t);
+            this->map[r].emplace_back(tile);
         }
         r++;
     }
@@ -229,11 +232,18 @@ std::vector<char> td::Map::getTileType(int type) {
 }
 
 // Get player starting row and column
-std::vector<int> td::Map::getPlayerStartPosition() {
-    std::vector<int> pos = std::vector<int>();
-    pos.emplace_back(this->starting_player_row);
-    pos.emplace_back(this->starting_player_col);
-    return pos;
+td::Tile td::Map::getPlayerStartTile() {
+    return this->map[this->player_start_row][this->player_start_col];
+}
+
+// Get map size, in pixels by default, or by rows and columns if 'true' passed
+sf::Vector2i td::Map::getMapSize(bool rows_cols) {
+    int num_rows = this->map.size();
+    int num_cols = this->map[0].size();
+    if (rows_cols)
+        return {num_cols, num_rows};
+    else
+        return {num_cols * this->tile_size, num_rows * this->tile_size};
 }
 
 // Set the map's sprite sheet, used to determine what to draw at each tile
@@ -314,6 +324,12 @@ td::Player::Player() {
 // Destructor
 td::Player::~Player() = default;
 
+// Set the map that the player will roam around
+void td::Player::setMap(td::Map &m) {
+    this->map = m;
+    this->spawn();
+}
+
 // Draw the player
 void td::Player::draw(sf::RenderTarget* target) const {
     sf::RectangleShape rect = td::Shapes::rect(this->x, this->y,this->width, this->height);
@@ -328,7 +344,7 @@ void td::Player::setColor(sf::Color c) {
 
 // Listen for player movement
 // Upon correct key presses, update the player's position
-void td::Player::move(td::Map& map) {
+void td::Player::move() {
     // Get time delta
     float elapsed = CLOCK.restart().asSeconds();
 
@@ -342,26 +358,26 @@ void td::Player::move(td::Map& map) {
     if (sf::Keyboard::isKeyPressed(this->up_key)) {     // UP
         new_y = this->y - (this->speed * elapsed);
         sf::RectangleShape rect = td::Shapes::rect(new_x, new_y, this->width, this->height);
-        if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
-            new_y = std::floor(this->y) - (float)((int)this->y % map.getTileSize());
+        if (td::Map::collides(this->map, this->map.getTileType(td::Map::TileTypes::WALL), rect))
+            new_y = std::floor(this->y) - (float)((int)this->y % this->map.getTileSize());
     }
     if (sf::Keyboard::isKeyPressed(this->down_key)) {   // DOWN
         new_y = this->y + (this->speed * elapsed);
         sf::RectangleShape rect = td::Shapes::rect(new_x, new_y, this->width, this->height);
-        if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
-            new_y = std::floor(this->y) + ((float)((int)(map.getTileSize() - ((int)(this->y + (float)this->height) % map.getTileSize())) % map.getTileSize()));
+        if (td::Map::collides(this->map, this->map.getTileType(td::Map::TileTypes::WALL), rect))
+            new_y = std::floor(this->y) + ((float)((int)(this->map.getTileSize() - ((int)(this->y + (float)this->height) % this->map.getTileSize())) % this->map.getTileSize()));
     }
     if (sf::Keyboard::isKeyPressed(this->left_key)) {   // LEFT
         new_x = this->x - (this->speed * elapsed);
         sf::RectangleShape rect = td::Shapes::rect(new_x, new_y, this->width, this->height);
-        if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
-            new_x = std::floor(this->x) - (float)((int)this->x % map.getTileSize());
+        if (td::Map::collides(this->map, this->map.getTileType(td::Map::TileTypes::WALL), rect))
+            new_x = std::floor(this->x) - (float)((int)this->x % this->map.getTileSize());
     }
     if (sf::Keyboard::isKeyPressed(this->right_key)) {  // RIGHT
         new_x = this->x + (this->speed * elapsed);
         sf::RectangleShape rect = td::Shapes::rect(new_x, new_y, this->width, this->height);
-        if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
-            new_x = std::floor(this->x) + ((float)((int)(map.getTileSize() - ((int)(this->x + (float)this->width) % map.getTileSize())) % map.getTileSize()));
+        if (td::Map::collides(this->map, this->map.getTileType(td::Map::TileTypes::WALL), rect))
+            new_x = std::floor(this->x) + ((float)((int)(this->map.getTileSize() - ((int)(this->x + (float)this->width) % this->map.getTileSize())) % this->map.getTileSize()));
     }
 
     this->x = new_x;
@@ -383,13 +399,11 @@ void td::Player::setMoveSpeed(float move_speed) {
 }
 
 // Set the player's position to be a specific map row and column
-void td::Player::setStartingPosition(td::Map& map) {
-    std::vector<int> starting_pos = map.getPlayerStartPosition();
-    td::Tile tile = map.getMap()[starting_pos[0]][starting_pos[1]];
-
-    std::vector<int> pos = tile.getPosition(map.getTileSize());
-    this->x = pos[0] + ((float)(map.getTileSize()-this->width)/2);
-    this->y = pos[1] + ((float)(map.getTileSize()-this->height)/2);
+void td::Player::spawn() {
+    td::Tile tile = this->map.getPlayerStartTile();
+    sf::Vector2i pos = tile.getPosition(this->map.getTileSize());
+    this->x = pos.x + ((float)(this->map.getTileSize()-this->width)/2);
+    this->y = pos.y + ((float)(this->map.getTileSize()-this->height)/2);
 }
 
 // Get the player's position
@@ -401,8 +415,12 @@ sf::Vector2f td::Player::getPosition(bool center) const {
 }
 
 // Set the player's width and height
-void td::Player::setSize(int w, int h) {
+void td::Player::setSize(int w, int h, bool center_in_tile) {
     this->width = w;
     this->height = h;
+    if (center_in_tile) {
+        this->x += ((float)(this->map.getTileSize()-this->width)/2);
+        this->y += ((float)(this->map.getTileSize()-this->height)/2);
+    }
 }
 //------------------------------------------------------------------------------------------------------------------

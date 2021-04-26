@@ -80,7 +80,7 @@ namespace td {
         sf::RectangleShape getRect(int tile_size = DEFAULT_TILE_SIZE) const;
         // Get sprite
         sf::RectangleShape getSprite(td::SpriteSheet& sprite_sheet, int tile_size = DEFAULT_TILE_SIZE) const;
-        std::vector<int> getPosition(int tile_size = DEFAULT_TILE_SIZE) const;
+        sf::Vector2i getPosition(int tile_size = DEFAULT_TILE_SIZE) const;
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -101,8 +101,8 @@ namespace td {
         td::SpriteSheet sprite_sheet{};
 
         // Player
-        int starting_player_row{};
-        int starting_player_col{};
+        int player_start_row;
+        int player_start_col;
 
         // Initialization
         void initVariables();
@@ -131,7 +131,8 @@ namespace td {
         td::Tile getTile(int x, int y);
         std::vector<std::vector<td::Tile>> getMap();
         std::vector<char> getTileType(int type);
-        std::vector<int> getPlayerStartPosition();
+        td::Tile getPlayerStartTile();
+        sf::Vector2i getMapSize(bool rows_cols = false);
 
         // Setters
         void setSpriteSheet(const td::SpriteSheet& sheet);
@@ -156,6 +157,9 @@ namespace td {
         // Color
         sf::Color color;
 
+        // Map
+        td::Map map;
+
         // Movement
         sf::Keyboard::Key up_key;
         sf::Keyboard::Key left_key;
@@ -175,22 +179,25 @@ namespace td {
         Player();
         ~Player();
 
+        // Map
+        void setMap(td::Map& m);
+
         // Render
         void draw(sf::RenderTarget* target) const;
         void setColor(sf::Color c);
 
         // Movement and collision
-        void move(td::Map& map);
+        void move();
         void setMovementKeys(sf::Keyboard::Key up, sf::Keyboard::Key left, sf::Keyboard::Key down,
                              sf::Keyboard::Key right);
         void setMoveSpeed(float move_speed);
 
         // Position
-        void setStartingPosition(td::Map& map);
+        void spawn();
         sf::Vector2f getPosition(bool center=false) const;
 
         // Size
-        void setSize(int w, int h);
+        void setSize(int w, int h, bool center_in_tile = false);
     };
     //------------------------------------------------------------------------------------------------------------------
 

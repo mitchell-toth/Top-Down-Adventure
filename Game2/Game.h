@@ -18,6 +18,7 @@ class Game {
         td::Map map;
         int tile_size{};
         sf::Color background_color;
+        float angle;
 
         // Gameplay
         Player player;

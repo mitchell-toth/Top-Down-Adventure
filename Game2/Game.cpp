@@ -35,6 +35,7 @@ void Game::initVariables() {
     this->pause = 0;
     this->tile_size = 8;
     this->view = sf::View();
+    this->angle = 0;
 }
 
 
@@ -87,8 +88,8 @@ void Game::initMap() {
 // Initialize the player
 void Game::initPlayer() {
     this->player = Player();
-    this->player.p.setSize((int)(this->tile_size*0.8), (int)(this->tile_size*0.8));
-    this->player.p.setStartingPosition(this->map);
+    this->player.p.setMap(this->map);
+    this->player.p.setSize((int)(this->tile_size*0.8), (int)(this->tile_size*0.8), true);
     this->player.p.setMovementKeys(sf::Keyboard::W,sf::Keyboard::A,
                                    sf::Keyboard::S, sf::Keyboard::D);
     this->player.p.setMoveSpeed(30);
@@ -101,7 +102,7 @@ void Game::update() {
     this->pollEvents();  // Poll for game loop events
 
     // Handle player movement
-    this->player.p.move(this->map);
+    this->player.p.move();
 
     /*
     //Private
@@ -110,7 +111,7 @@ void Game::update() {
     this->player.p.setMap(map); // Set the map the player is to use and roam around on
     this->player.p.getHealth(); // Get health
     this->player.p.isDead();    // If health <= 0
-    this->player.p.spawn();     // Place at starting location
+    DONE -- this->player.p.spawn();     // Place at starting location
     this->player.p.respawn();   // Place at latest checkpoint or starting location
     */
 }
@@ -124,9 +125,11 @@ void Game::render() {
     // td::Text::print(this->window, "Hello!", {.font=this->font, .y=100, .align=td::Text::Align::CENTER});
 
     this->view.reset(sf::FloatRect(0, 0, this->videoMode.width, this->videoMode.height));
-    // this->view.rotate(5);
+    this->view.rotate(this->angle);
+    // this->angle += 0.05;
     // this->view.setViewport(sf::FloatRect(0.f, 0.f, 0.5f, 1.f));
-    this->view.setCenter(this->player.p.getPosition(true));
+    // this->view.setCenter(this->player.p.getPosition(true));
+    this->view.setCenter((float)(this->map.getMapSize().x)/2,(float)(this->map.getMapSize().y)/2);
     this->view.zoom(0.18);
     this->window->setView(this->view);
 
