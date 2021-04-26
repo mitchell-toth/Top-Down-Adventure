@@ -16,6 +16,8 @@ namespace td {
     static sf::Clock CLOCK;
     static const int DEFAULT_TILE_SIZE = 8;
 
+    class Enemy;
+
     class Util {
     public:
         template <typename V>
@@ -104,6 +106,9 @@ namespace td {
         int player_start_row;
         int player_start_col;
 
+        // Enemies
+        std::vector<td::Enemy> enemies;
+
         // Initialization
         void initVariables();
     public:
@@ -116,8 +121,10 @@ namespace td {
         enum TileTypes {
             WALL = 1,
             START = 2,
-            DOOR = 3,
-            KEY = 4
+            CHECKPOINT = 3,
+            END = 4,
+            DOOR = 5,
+            KEY = 6
         };
 
         // Read in the map
@@ -125,6 +132,7 @@ namespace td {
 
         // Render
         void draw(sf::RenderTarget* target);
+        void drawEnemies(sf::RenderTarget* target);
 
         // Getters
         int getTileSize() const;
@@ -139,6 +147,9 @@ namespace td {
         void setTileSize(int size);
         void setTileType(int type, std::vector<char> type_id);
 
+        // Enemies
+        void addEnemy(const td::Enemy& enemy);
+
         // Collision
         static bool collides(td::Map& map, const std::vector<char>& type_ids, const sf::RectangleShape& rect);
     };
@@ -146,6 +157,15 @@ namespace td {
 
     class Player {
     private:
+        // Movement
+        sf::Keyboard::Key up_key;
+        sf::Keyboard::Key left_key;
+        sf::Keyboard::Key down_key;
+        sf::Keyboard::Key right_key;
+
+        // Gameplay
+        std::vector<char> inventory;
+    protected:
         // Position
         float x;
         float y;
@@ -161,17 +181,12 @@ namespace td {
         td::Map map;
 
         // Movement
-        sf::Keyboard::Key up_key;
-        sf::Keyboard::Key left_key;
-        sf::Keyboard::Key down_key;
-        sf::Keyboard::Key right_key;
         float speed;
 
         // Appearance
         sf::Sprite sprite;
 
         // Gameplay
-        std::vector<char> inventory;
         int health;
         int max_health;
     public:
@@ -180,7 +195,7 @@ namespace td {
         ~Player();
 
         // Map
-        void setMap(td::Map& m);
+        virtual void setMap(td::Map& m);
 
         // Render
         void draw(sf::RenderTarget* target) const;
@@ -200,6 +215,20 @@ namespace td {
         void setSize(int w, int h, bool center_in_tile = false);
     };
     //------------------------------------------------------------------------------------------------------------------
+
+    class Enemy : public Player {
+    public:
+        // Constructor/destructor
+        Enemy();
+        ~Enemy();
+
+        // Map
+        void setMap(td::Map& m) override;
+
+        // Position
+        void setStartPosition(float start_x, float start_y);
+        void setStartTile(int row, int col);
+    };
 
 }
 

@@ -77,10 +77,11 @@ void Game::initMap() {
     td::SpriteSheet sprite_sheet = td::SpriteSheet();
     sprite_sheet.addSprite('#', sf::Color::Transparent);
     sprite_sheet.addSprite('w', sf::Color::Black);
+    sprite_sheet.addSprite('a', sf::Color::Yellow);
     sprite_sheet.addSprite('`', sf::Color(200, 200, 200));
     sprite_sheet.addSprite('\'', sf::Color::White);
+    sprite_sheet.addSprite('c', sf::Color(139, 246, 153));
     sprite_sheet.addSprite('e', sf::Color(139, 246, 153));
-    sprite_sheet.addSprite('a', sf::Color::Yellow);
     this->map.setSpriteSheet(sprite_sheet);
 }
 
@@ -94,6 +95,16 @@ void Game::initPlayer() {
                                    sf::Keyboard::S, sf::Keyboard::D);
     this->player.p.setMoveSpeed(30);
     this->player.p.setColor(sf::Color::Red);
+
+    td::Enemy enemy = td::Enemy();
+    enemy.setMap(this->map);
+    enemy.setSize((int)(this->tile_size*0.4), (int)(this->tile_size*0.4));
+    enemy.setStartTile(5, 8);
+    enemy.setColor(sf::Color::Blue);
+
+    this->map.addEnemy(enemy);
+    enemy.setStartTile(6, 8);
+    this->map.addEnemy(enemy);
 }
 
 
@@ -108,7 +119,7 @@ void Game::update() {
     //Private
     this->player.p.setCheckpoint(tile);
     // Public
-    this->player.p.setMap(map); // Set the map the player is to use and roam around on
+    DONE -- this->player.p.setMap(map); // Set the map the player is to use and roam around on
     this->player.p.getHealth(); // Get health
     this->player.p.isDead();    // If health <= 0
     DONE -- this->player.p.spawn();     // Place at starting location
@@ -135,8 +146,13 @@ void Game::render() {
 
     // Render the map
     this->map.draw(this->window);
+
     // Render the player
     this->player.p.draw(this->window);
+
+    // Render enemies
+    this->map.drawEnemies(this->window);
+    // this->enemy.draw(this->window);
 
     // Display what has been rendered
     this->window->display();

@@ -152,6 +152,8 @@ void td::Map::initVariables() {
     this->tile_types = {
             {td::Map::TileTypes::WALL, {'w'}},
             {td::Map::TileTypes::START, {'s'}},
+            {td::Map::TileTypes::CHECKPOINT, {'c'}},
+            {td::Map::TileTypes::END, {'e'}},
             {td::Map::TileTypes::DOOR, {'d'}},
             {td::Map::TileTypes::KEY, {'k'}}
     };
@@ -206,6 +208,13 @@ void td::Map::draw(sf::RenderTarget* target) {
             // Create the corresponding graphical tile and display it
             target->draw(tile.getSprite(this->sprite_sheet, this->tile_size));
         }
+    }
+}
+
+// Display the map's enemies
+void td::Map::drawEnemies(sf::RenderTarget *target) {
+    for (const auto& enemy: this->enemies) {
+        enemy.draw(target);
     }
 }
 
@@ -264,6 +273,11 @@ void td::Map::setTileType(int type, std::vector<char> type_ids) {
     this->tile_types[type] = std::move(type_ids);
 }
 
+// Add an enemy to the map
+void td::Map::addEnemy(const td::Enemy& enemy) {
+    this->enemies.emplace_back(enemy);
+}
+
 // Look at all tiles around a given location (x,y) and check if the current location
 //  intersects with any surrounding tiles of a specific type.
 // Looks in a 3x3 tile grid around the location given, with center at the location's top-left corner tile
@@ -274,10 +288,12 @@ bool td::Map::collides(td::Map& map, const std::vector<char>& type_ids, const sf
     // If the location is at the edge of the map, then reduce the size of the search to avoid Index errors
     int row = current_tile.row;
     int col = current_tile.col;
-    int r_start = row-1; if (row == 0) r_start = row;
-    int c_start = col-1; if (col == 0) c_start = col;
-    int r_end = row+1; if (row == map.getMap().size()-1) r_end = row;
-    int c_end = col+1; if (col == map.getMap()[0].size()-1) c_end = col;
+    int search_size_row = std::ceil(rect.getSize().y / (float)map.getTileSize());
+    int search_size_col = std::ceil(rect.getSize().x / (float)map.getTileSize());
+    int r_start = row-search_size_row; if (r_start < 0) r_start = row;
+    int c_start = col-search_size_col; if (c_start < 0) c_start = col;
+    int r_end = row+search_size_row; if (r_end > map.getMapSize(true).y) r_end = row;
+    int c_end = col+search_size_col; if (c_end > map.getMapSize(true).x) c_end = col;
 
     // Now iterate over the tiles, checking if the given location's bounding box intersects one of them
     for (int r=r_start; r<=r_end; r++) {
@@ -424,3 +440,28 @@ void td::Player::setSize(int w, int h, bool center_in_tile) {
     }
 }
 //------------------------------------------------------------------------------------------------------------------
+
+
+/* Enemy */
+
+// Constructor/destructor
+td::Enemy::Enemy() = default;
+td::Enemy::~Enemy() = default;
+
+// Set the map that the enemy will be on
+// Overwrites base Player setMap() so that the call to spawn() is omitted
+void td::Enemy::setMap(td::Map& m) {
+    this->map = m;
+}
+
+// Set starting x and y
+void td::Enemy::setStartPosition(float start_x, float start_y) {
+    this->x = start_x;
+    this->y = start_y;
+}
+
+// Set starting tile row and column
+void td::Enemy::setStartTile(int row, int col) {
+    this->x = (float)(col * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->width)/2);
+    this->y = (float)(row * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->height)/2);
+}

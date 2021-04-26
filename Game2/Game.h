@@ -22,6 +22,7 @@ class Game {
 
         // Gameplay
         Player player;
+        // std::vector<td::Enemy> enemies;
 
         // Fonts/text
         sf::Font font;
