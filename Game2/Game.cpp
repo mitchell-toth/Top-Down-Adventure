@@ -46,8 +46,8 @@ void Game::initFonts() {
 
 // Initialize game window
 void Game::initWindow() {
-    this->videoMode.width = 800;
-    this->videoMode.height = 800;
+    this->videoMode.width = 1000;
+    this->videoMode.height = 650;
     this->background_color = sf::Color(158, 154, 229);
 
     // Allocate the window
@@ -87,11 +87,11 @@ void Game::initMap() {
 // Initialize the player
 void Game::initPlayer() {
     this->player = Player();
-    //this->player.p.setSize(this->tile_size, this->tile_size);
+    this->player.p.setSize((int)(this->tile_size*0.8), (int)(this->tile_size*0.8));
     this->player.p.setStartingPosition(this->map);
     this->player.p.setMovementKeys(sf::Keyboard::W,sf::Keyboard::A,
                                    sf::Keyboard::S, sf::Keyboard::D);
-    this->player.p.setMoveSpeed(100);
+    this->player.p.setMoveSpeed(30);
     this->player.p.setColor(sf::Color::Red);
 }
 
@@ -102,6 +102,17 @@ void Game::update() {
 
     // Handle player movement
     this->player.p.move(this->map);
+
+    /*
+    //Private
+    this->player.p.setCheckpoint(tile);
+    // Public
+    this->player.p.setMap(map); // Set the map the player is to use and roam around on
+    this->player.p.getHealth(); // Get health
+    this->player.p.isDead();    // If health <= 0
+    this->player.p.spawn();     // Place at starting location
+    this->player.p.respawn();   // Place at latest checkpoint or starting location
+    */
 }
 
 
@@ -114,9 +125,9 @@ void Game::render() {
 
     this->view.reset(sf::FloatRect(0, 0, this->videoMode.width, this->videoMode.height));
     // this->view.rotate(5);
-    //this->view.setViewport(sf::FloatRect(0.f, 0.f, 0.5f, 1.f));
+    // this->view.setViewport(sf::FloatRect(0.f, 0.f, 0.5f, 1.f));
     this->view.setCenter(this->player.p.getPosition(true));
-    this->view.zoom(0.25);
+    this->view.zoom(0.18);
     this->window->setView(this->view);
 
     // Render the map

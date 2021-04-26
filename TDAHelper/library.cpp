@@ -52,7 +52,7 @@ void td::Text::print(sf::RenderTarget* target, const std::string &s, const td::T
 /* Shapes */
 
 // Construct and return a rectangle
-sf::RectangleShape td::Shapes::rect(int x, int y, int width, int height, sf::Color color) {
+sf::RectangleShape td::Shapes::rect(float x, float y, int width, int height, sf::Color color) {
     sf::RectangleShape rect;
     rect.setPosition(sf::Vector2f(x, y));
     rect.setSize(sf::Vector2f(width, height));
@@ -106,7 +106,7 @@ td::Tile::Tile(char sprite_id, char type_id, int row, int col) {
 
 // Get the tile's rectangle object
 sf::RectangleShape td::Tile::getRect(int tile_size) const {
-    return td::Shapes::rect(tile_size * this->col, tile_size * this->row, tile_size, tile_size);
+    return td::Shapes::rect((float)(tile_size * this->col), (float)(tile_size * this->row), tile_size, tile_size);
 }
 
 // Get the tile's sprite
@@ -316,8 +316,7 @@ td::Player::~Player() = default;
 
 // Draw the player
 void td::Player::draw(sf::RenderTarget* target) const {
-    sf::RectangleShape rect = td::Shapes::rect((int)this->x, (int)this->y,
-                                               (int)this->width, (int)this->height);
+    sf::RectangleShape rect = td::Shapes::rect(this->x, this->y,this->width, this->height);
     rect.setFillColor(this->color);
     target->draw(rect);
 }
@@ -342,31 +341,31 @@ void td::Player::move(td::Map& map) {
     // This has the effect of clamping the position to align with the tile size.
     if (sf::Keyboard::isKeyPressed(this->up_key)) {     // UP
         new_y = this->y - (this->speed * elapsed);
-        sf::RectangleShape rect = td::Shapes::rect((int)new_x, (int)new_y, this->width, this->height);
+        sf::RectangleShape rect = td::Shapes::rect(new_x, new_y, this->width, this->height);
         if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
-            new_y = this->y - (float)((int)this->y % map.getTileSize());
+            new_y = std::floor(this->y) - (float)((int)this->y % map.getTileSize());
     }
     if (sf::Keyboard::isKeyPressed(this->down_key)) {   // DOWN
         new_y = this->y + (this->speed * elapsed);
-        sf::RectangleShape rect = td::Shapes::rect((int)new_x, (int)new_y, this->width, this->height);
+        sf::RectangleShape rect = td::Shapes::rect(new_x, new_y, this->width, this->height);
         if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
-            new_y = this->y + ((float)((int)(map.getTileSize() - ((int)this->y % map.getTileSize())) % map.getTileSize()));
+            new_y = std::floor(this->y) + ((float)((int)(map.getTileSize() - ((int)(this->y + (float)this->height) % map.getTileSize())) % map.getTileSize()));
     }
     if (sf::Keyboard::isKeyPressed(this->left_key)) {   // LEFT
         new_x = this->x - (this->speed * elapsed);
-        sf::RectangleShape rect = td::Shapes::rect((int)new_x, (int)new_y, this->width, this->height);
+        sf::RectangleShape rect = td::Shapes::rect(new_x, new_y, this->width, this->height);
         if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
-            new_x = this->x - (float)((int)this->x % map.getTileSize());
+            new_x = std::floor(this->x) - (float)((int)this->x % map.getTileSize());
     }
     if (sf::Keyboard::isKeyPressed(this->right_key)) {  // RIGHT
         new_x = this->x + (this->speed * elapsed);
-        sf::RectangleShape rect = td::Shapes::rect((int)new_x, (int)new_y, this->width, this->height);
+        sf::RectangleShape rect = td::Shapes::rect(new_x, new_y, this->width, this->height);
         if (td::Map::collides(map, map.getTileType(td::Map::TileTypes::WALL), rect))
-            new_x = this->x + ((float)((int)(map.getTileSize() - ((int)this->x % map.getTileSize())) % map.getTileSize()));
+            new_x = std::floor(this->x) + ((float)((int)(map.getTileSize() - ((int)(this->x + (float)this->width) % map.getTileSize())) % map.getTileSize()));
     }
 
-    this->x = (std::floor(new_x) + std::ceil(new_x))/2;
-    this->y = (std::floor(new_y) + std::ceil(new_y))/2;
+    this->x = new_x;
+    this->y = new_y;
 }
 
 // Alter the default player movement keys
