@@ -147,7 +147,7 @@ td::Map::Map(const std::string& path) {
 
 // Initialize map attributes
 void td::Map::initVariables() {
-    this->tile_size = DEFAULT_TILE_SIZE;
+    this->tile_size = td::Tile::DEFAULT_TILE_SIZE;
     this->max_allowed_tile_size = 1000;
     this->tile_types = {
             {td::Map::TileTypes::WALL, {'w'}},
@@ -332,8 +332,8 @@ td::Player::Player() {
     this->y = 0;
 
     // Size
-    this->width = DEFAULT_TILE_SIZE;
-    this->height = DEFAULT_TILE_SIZE;
+    this->width = td::Tile::DEFAULT_TILE_SIZE;
+    this->height = td::Tile::DEFAULT_TILE_SIZE;
 
     // Color
     this->color = sf::Color::White;
@@ -375,10 +375,8 @@ void td::Player::setColor(sf::Color c) {
 
 // Listen for player movement
 // Upon correct key presses, update the player's position
-void td::Player::move() {
-    // Get time delta
-    float elapsed = CLOCK.restart().asSeconds();
-
+// Passed a time delta to ensure consistent speeds across all fps values
+void td::Player::move(float elapsed) {
     float new_x = this->x;
     float new_y = this->y;
 
@@ -441,6 +439,7 @@ void td::Player::spawn() {
 
 // Set the player's position according to the latest checkpoint the player reached
 void td::Player::respawn() {
+    this->health = this->max_health;
     sf::Vector2i pos = this->checkpoint.getPosition(this->map.getTileSize());
     this->x = pos.x + ((float)(this->map.getTileSize()-this->width)/2);
     this->y = pos.y + ((float)(this->map.getTileSize()-this->height)/2);
@@ -536,9 +535,9 @@ void td::Player::gainHealth(int health_points) {
     this->health += health_points;
 }
 
-// Has the player's health dropped below zero?
+// Player health <= 0
 bool td::Player::isDead() const {
-    return this->health < 0;
+    return this->health <= 0;
 }
 //------------------------------------------------------------------------------------------------------------------
 

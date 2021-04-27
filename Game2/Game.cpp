@@ -23,8 +23,7 @@ bool Game::running() const {
 
 
 // Is the game paused?
-bool Game::paused() {
-    this->pause--;
+bool Game::paused() const {
     return this->pause > 0;
 }
 
@@ -37,6 +36,8 @@ void Game::initVariables() {
     this->tile_size = 8;
     this->view = sf::View();
     this->angle = 0;
+    this->respawnPlayer = false;
+    this->elapsed = 0;
 }
 
 
@@ -114,8 +115,14 @@ void Game::initPlayer() {
 void Game::update() {
     this->pollEvents();  // Poll for game loop events
 
+    // Respawn the player after a pause
+    if (this->respawnPlayer) {
+        this->respawnPlayer = false;
+        this->player.p.respawn();
+    }
+
     // Handle player movement
-    this->player.p.move();
+    this->player.p.move(this->elapsed);
 
     if (this->player.p.onCheckpoint()) {
         this->player.p.setCheckpoint();
@@ -126,27 +133,21 @@ void Game::update() {
         std::vector<td::Enemy> touching_enemies = this->player.p.getTouchingEnemies();
         for (const auto& enemy: touching_enemies) {
             this->player.p.loseHealth(enemy.getHarm());
-            if (this->player.p.isDead()) {
-                this->player.p.respawn();
-            }
         }
     }
 
-    /*
-    //Private
-    this->player.p.setCheckpoint(tile);
-    // Public
-    DONE -- this->player.p.setMap(map); // Set the map the player is to use and roam around on
-    DONE -- this->player.p.getHealth(); // Get health
-    DONE -- this->player.p.isDead();    // If health <= 0
-    DONE -- this->player.p.spawn();     // Place at starting location
-    this->player.p.respawn();   // Place at latest checkpoint or starting location
-    */
+    // Respawn if player is dead
+    if (this->player.p.isDead()) {
+        this->pauseRespawn();
+    }
 }
 
 
 // Render
 void Game::render() {
+    // Update the pause variable
+    if (this->paused()) this->pause--;
+
     // Clear previous frame renders
     this->window->clear(this->background_color);
 
@@ -190,4 +191,11 @@ void Game::pollEvents() {
                 break;
         }
     }
+}
+
+
+// Pause before respawning the player
+void Game::pauseRespawn() {
+    this->respawnPlayer = true;
+    this->pause = 50;
 }

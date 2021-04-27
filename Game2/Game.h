@@ -18,7 +18,7 @@ class Game {
         td::Map map;
         int tile_size{};
         sf::Color background_color;
-        float angle;
+        float angle{};
 
         // Gameplay
         Player player;
@@ -37,14 +37,22 @@ class Game {
         // Game functions
         void pollEvents();
 
+        // Gameplay
+        bool respawnPlayer{};
+        void pauseRespawn();
+
     public:
         // Constructor/destructor
         Game();
         virtual ~Game();
 
+        // Game clock
+        sf::Clock clock;
+        float elapsed{};
+
         // Game functions
         bool running() const;
-        bool paused();
+        bool paused() const;
         void update();
         void render();
 };

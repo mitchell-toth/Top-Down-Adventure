@@ -13,10 +13,11 @@
 #include <cmath>
 
 namespace td {
-    static sf::Clock CLOCK;
-    static const int DEFAULT_TILE_SIZE = 8;
-
+    // Forward declarations
     class Enemy;
+
+    // Classes:
+    //------------------------------------------------------------------------------------------------------------------
 
     class Util {
     public:
@@ -76,6 +77,8 @@ namespace td {
         Tile(char sprite_id, char type_id, int row, int col);
         ~Tile();
 
+        static const int DEFAULT_TILE_SIZE = 8;
+
         // Config variables
         char sprite_id{};
         char type_id{};
@@ -83,10 +86,10 @@ namespace td {
         int col{};
 
         // Get tile rect
-        sf::RectangleShape getRect(int tile_size = DEFAULT_TILE_SIZE) const;
+        sf::RectangleShape getRect(int tile_size = td::Tile::DEFAULT_TILE_SIZE) const;
         // Get sprite
-        sf::RectangleShape getSprite(td::SpriteSheet& sprite_sheet, int tile_size = DEFAULT_TILE_SIZE) const;
-        sf::Vector2i getPosition(int tile_size = DEFAULT_TILE_SIZE) const;
+        sf::RectangleShape getSprite(td::SpriteSheet& sprite_sheet, int tile_size = td::Tile::DEFAULT_TILE_SIZE) const;
+        sf::Vector2i getPosition(int tile_size = td::Tile::DEFAULT_TILE_SIZE) const;
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -209,7 +212,7 @@ namespace td {
         void setColor(sf::Color c);
 
         // Movement
-        void move();
+        void move(float elapsed);
         void setMovementKeys(sf::Keyboard::Key up, sf::Keyboard::Key left, sf::Keyboard::Key down,
                              sf::Keyboard::Key right);
         void setMoveSpeed(float move_speed);
