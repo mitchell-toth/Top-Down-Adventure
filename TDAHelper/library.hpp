@@ -226,6 +226,9 @@ namespace td {
         bool onCheckpoint();
         void setCheckpoint();
 
+        // End tiles
+        bool onEnd();
+
         // Size
         td::Util::size getSize() const;
         void setSize(int w, int h, bool center_in_tile = false);

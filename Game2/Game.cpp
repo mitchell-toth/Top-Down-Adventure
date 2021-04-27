@@ -5,7 +5,7 @@ Game::Game() {
     this->initVariables();
     this->initFonts();
     this->initWindow();
-    this->initMap();
+    this->initMaps();
     this->initPlayer();
 }
 
@@ -33,7 +33,6 @@ void Game::initVariables() {
     this->window = nullptr;
     this->fps = 60;
     this->pause = 0;
-    this->tile_size = 8;
     this->view = sf::View();
     this->angle = 0;
     this->respawnPlayer = false;
@@ -62,47 +61,26 @@ void Game::initWindow() {
             sf::VideoMode::getDesktopMode().width * 0.5 - this->window->getSize().x * 0.5,
             sf::VideoMode::getDesktopMode().height * 0.5 - this->window->getSize().y * 0.5
     ));
-
     // Set frame rate
     this->window->setFramerateLimit(this->fps);
 }
 
 
 // Initialize game map
-void Game::initMap() {
-    // Load in the map
-    this->map = td::Map("../assets/map/map.txt");
-    // this->map.setTileSize(this->tile_size);
-    this->map.setTileType(td::Map::TileTypes::WALL, {'#', '|'});
-
-    // Set the map's sprite sheet and ID mapping
-    td::SpriteSheet sprite_sheet = td::SpriteSheet();
-    sprite_sheet.addSprite('#', sf::Color::Transparent);
-    sprite_sheet.addSprite('w', sf::Color::Black);
-    sprite_sheet.addSprite('a', sf::Color::Yellow);
-    sprite_sheet.addSprite('`', sf::Color(200, 200, 200));
-    sprite_sheet.addSprite('\'', sf::Color::White);
-    sprite_sheet.addSprite('c', sf::Color(139, 246, 153));
-    sprite_sheet.addSprite('e', sf::Color(139, 246, 153));
-    this->map.setSpriteSheet(sprite_sheet);
-
-    td::Enemy enemy = td::Enemy();
-    enemy.setMap(this->map);
-    enemy.setSize((int)(this->tile_size*0.4), (int)(this->tile_size*0.4));
-    enemy.setColor(sf::Color::Blue);
-    enemy.setHarm(100);
-
-    enemy.setStartTile(5, 8);
-    this->map.addEnemy(enemy);
-    enemy.setStartTile(6, 8);
-    this->map.addEnemy(enemy);
+void Game::initMaps() {
+    this->tile_size = 8;  // Tile size
+    this->map_index = 0;  // Default is first map
+    // Set up all the maps, complete with enemies and sprite sheets
+    this->maps = Maps::initMaps(this->tile_size);
+    // Set the current map to be the first one
+    this->current_map = this->maps[this->map_index];
 }
 
 
 // Initialize the player
 void Game::initPlayer() {
     this->player = Player();
-    this->player.p.setMap(this->map);
+    this->player.p.setMap(this->current_map);
     this->player.p.setSize((int)(this->tile_size*0.8), (int)(this->tile_size*0.8), true);
     this->player.p.setMovementKeys(sf::Keyboard::W,sf::Keyboard::A,
                                    sf::Keyboard::S, sf::Keyboard::D);
@@ -140,6 +118,11 @@ void Game::update() {
     if (this->player.p.isDead()) {
         this->pauseRespawn();
     }
+
+    // Check if the player has reached the end goal
+    if (this->player.p.onEnd()) {
+        this->loadNextMap();
+    }
 }
 
 
@@ -151,26 +134,21 @@ void Game::render() {
     // Clear previous frame renders
     this->window->clear(this->background_color);
 
-    // td::Text::print(this->window, "Hello!", {.font=this->font, .y=100, .align=td::Text::Align::CENTER});
-
+    // Configure the camera view
     this->view.reset(sf::FloatRect(0, 0, this->videoMode.width, this->videoMode.height));
     this->view.rotate(this->angle);
-    // this->angle += 0.05;
-    // this->view.setViewport(sf::FloatRect(0.f, 0.f, 0.5f, 1.f));
-    // this->view.setCenter(this->player.p.getPosition(true));
-    this->view.setCenter((float)(this->map.getMapSize().x)/2,(float)(this->map.getMapSize().y)/2);
-    this->view.zoom(0.18);
+    this->view.setCenter((float)(this->current_map.getMapSize().x)/2,(float)(this->current_map.getMapSize().y)/2);
+    this->view.zoom(0.16);
     this->window->setView(this->view);
 
     // Render the map
-    this->map.draw(this->window);
+    this->current_map.draw(this->window);
 
     // Render the player
     this->player.p.draw(this->window);
 
     // Render enemies
-    this->map.drawEnemies(this->window);
-    // this->enemy.draw(this->window);
+    this->current_map.drawEnemies(this->window);
 
     // Display what has been rendered
     this->window->display();
@@ -198,4 +176,18 @@ void Game::pollEvents() {
 void Game::pauseRespawn() {
     this->respawnPlayer = true;
     this->pause = 50;
+}
+
+
+// Load the next map and place the player on it
+void Game::loadNextMap() {
+    this->map_index++;
+    if (this->map_index >= this->maps.size()) {
+        std::cout << "Winner" << std::endl;
+        this->map_index = 0;  // Loop back around to the first map
+    }
+    // Get the next map
+    this->current_map = this->maps[this->map_index];
+    // Configure player to use the new map
+    this->player.p.setMap(this->current_map);
 }

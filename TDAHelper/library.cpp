@@ -475,6 +475,12 @@ void td::Player::setCheckpoint() {
     }
 }
 
+// Check if the player is currently colliding with an end tile
+bool td::Player::onEnd() {
+    sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
+    return td::Map::collides(this->map, this->map.getTileType(td::Map::TileTypes::END), p_rect);
+}
+
 // Get the player's width and height
 td::Util::size td::Player::getSize() const {
     return {this->width, this->height};

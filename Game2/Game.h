@@ -3,6 +3,7 @@
 
 #include <TDAHelper/library.hpp>
 #include "Player.h"
+#include "Maps.h"
 
 class Game {
     private:
@@ -15,7 +16,11 @@ class Game {
         int pause{};
 
         // Map
-        td::Map map;
+        td::Map current_map;
+        std::vector<td::Map> maps;
+        int map_index{};
+
+        // Map config
         int tile_size{};
         sf::Color background_color;
         float angle{};
@@ -27,19 +32,23 @@ class Game {
         // Fonts/text
         sf::Font font;
 
+        // Gameplay
+        bool respawnPlayer{};
+
+        //Functions:
         // Initialization
         void initVariables();
         void initFonts();
         void initWindow();
-        void initMap();
+        void initMaps();
         void initPlayer();
 
         // Game functions
         void pollEvents();
 
         // Gameplay
-        bool respawnPlayer{};
         void pauseRespawn();
+        void loadNextMap();
 
     public:
         // Constructor/destructor
