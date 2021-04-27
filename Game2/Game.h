@@ -44,7 +44,7 @@ class Game {
 
         // Game functions
         bool running() const;
-        bool paused() const;
+        bool paused();
         void update();
         void render();
 };

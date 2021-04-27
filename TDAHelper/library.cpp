@@ -224,9 +224,9 @@ int td::Map::getTileSize() const {
 }
 
 // Retrieve the tile at a given x and y location
-td::Tile td::Map::getTile(int x, int y) {
-    int r = (int)(y/this->tile_size);
-    int c = (int)(x/this->tile_size);
+td::Tile td::Map::getTile(float x, float y) {
+    int r = (int)(y/(float)this->tile_size);
+    int c = (int)(x/(float)this->tile_size);
     return this->map[r][c];
 }
 
@@ -255,6 +255,11 @@ sf::Vector2i td::Map::getMapSize(bool rows_cols) {
         return {num_cols * this->tile_size, num_rows * this->tile_size};
 }
 
+// Get the map's enemies
+std::vector<td::Enemy> td::Map::getEnemies() {
+    return this->enemies;
+}
+
 // Set the map's sprite sheet, used to determine what to draw at each tile
 void td::Map::setSpriteSheet(const td::SpriteSheet& sheet) {
     this->sprite_sheet = sheet;
@@ -278,10 +283,18 @@ void td::Map::addEnemy(const td::Enemy& enemy) {
     this->enemies.emplace_back(enemy);
 }
 
+// Checks if the player is colliding with any tiles of a certain type
+bool td::Map::collides(td::Map& map, const std::vector<char>& type_ids, const sf::RectangleShape& rect) {
+    return !td::Map::getCollisions(map, type_ids, rect).empty();
+}
+
+// Get all tiles of certain types that the player is colliding with.
 // Look at all tiles around a given location (x,y) and check if the current location
 //  intersects with any surrounding tiles of a specific type.
 // Looks in a 3x3 tile grid around the location given, with center at the location's top-left corner tile
-bool td::Map::collides(td::Map& map, const std::vector<char>& type_ids, const sf::RectangleShape& rect) {
+std::vector<td::Tile>
+td::Map::getCollisions(td::Map &map, const std::vector<char> &type_ids, const sf::RectangleShape &rect) {
+    std::vector<td::Tile> tiles = std::vector<td::Tile>();
     // Get the tile at the location's top-left corner
     td::Tile current_tile = map.getTile(rect.getPosition().x, rect.getPosition().y);
     // Setup to look at the tiles around (and at) this current tile, in a 3x3 grid if possible
@@ -301,11 +314,11 @@ bool td::Map::collides(td::Map& map, const std::vector<char>& type_ids, const sf
             td::Tile tile = map.getMap()[r][c];
             if ((td::Util::find(type_ids, tile.type_id) != -1) &&
                 rect.getGlobalBounds().intersects(tile.getRect(map.getTileSize()).getGlobalBounds())) {
-                return true;  // Collision!
+                tiles.emplace_back(tile);  // Collision!
             }
         }
     }
-    return false;  // No collision
+    return tiles;
 }
 //------------------------------------------------------------------------------------------------------------------
 
@@ -336,6 +349,7 @@ td::Player::Player() {
     this->max_health = 100;
     this->health = this->max_health;
     this->inventory = std::vector<char>();
+    this->checkpoint = td::Tile('0', this->map.getTileType(td::Map::TileTypes::CHECKPOINT).front(), 0, 0);
 }
 // Destructor
 td::Player::~Player() = default;
@@ -343,6 +357,7 @@ td::Player::~Player() = default;
 // Set the map that the player will roam around
 void td::Player::setMap(td::Map &m) {
     this->map = m;
+    this->checkpoint = m.getPlayerStartTile();
     this->spawn();
 }
 
@@ -414,10 +429,19 @@ void td::Player::setMoveSpeed(float move_speed) {
     this->speed = move_speed;
 }
 
-// Set the player's position to be a specific map row and column
+// Set the player's position according to the starting point specified on the map
+// To be called at the start of a level
 void td::Player::spawn() {
+    this->health = this->max_health;
     td::Tile tile = this->map.getPlayerStartTile();
     sf::Vector2i pos = tile.getPosition(this->map.getTileSize());
+    this->x = pos.x + ((float)(this->map.getTileSize()-this->width)/2);
+    this->y = pos.y + ((float)(this->map.getTileSize()-this->height)/2);
+}
+
+// Set the player's position according to the latest checkpoint the player reached
+void td::Player::respawn() {
+    sf::Vector2i pos = this->checkpoint.getPosition(this->map.getTileSize());
     this->x = pos.x + ((float)(this->map.getTileSize()-this->width)/2);
     this->y = pos.y + ((float)(this->map.getTileSize()-this->height)/2);
 }
@@ -430,6 +454,33 @@ sf::Vector2f td::Player::getPosition(bool center) const {
     return {this->x, this->y};
 }
 
+// Check if the player is currently colliding with a checkpoint tile
+bool td::Player::onCheckpoint() {
+    sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
+    return td::Map::collides(this->map, this->map.getTileType(td::Map::TileTypes::CHECKPOINT), p_rect);
+}
+
+// Check if the player is currently colliding with a checkpoint tile.
+// Looks around for a checkpoint tile that the player is touching.
+//  If it finds one, it sets the player's checkpoint variable to that tile.
+//  If not, it sets the player's checkpoint tile at the current tile.
+// Supports both formal checkpoints and informal save points.
+void td::Player::setCheckpoint() {
+    sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
+    std::vector<td::Tile> checkpoints = td::Map::getCollisions(this->map, this->map.getTileType(td::Map::TileTypes::CHECKPOINT), p_rect);
+    if (!checkpoints.empty()) {
+        this->checkpoint = checkpoints.back();
+    }
+    else {
+        this->checkpoint = this->map.getTile(this->x, this->y);
+    }
+}
+
+// Get the player's width and height
+td::Util::size td::Player::getSize() const {
+    return {this->width, this->height};
+}
+
 // Set the player's width and height
 void td::Player::setSize(int w, int h, bool center_in_tile) {
     this->width = w;
@@ -439,13 +490,65 @@ void td::Player::setSize(int w, int h, bool center_in_tile) {
         this->y += ((float)(this->map.getTileSize()-this->height)/2);
     }
 }
+
+// Check if the player is currently colliding with an enemy
+bool td::Player::isTouchingEnemy() {
+    return !this->getTouchingEnemies().empty();
+}
+
+// Get the enemy that the player is touching
+std::vector<td::Enemy> td::Player::getTouchingEnemies() {
+    std::vector<td::Enemy> touching_enemies = std::vector<td::Enemy>();
+
+    sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
+    for (const auto& enemy : this->map.getEnemies()) {
+        sf::RectangleShape enemy_rect = td::Shapes::rect(
+                enemy.getPosition().x, enemy.getPosition().y, enemy.getSize().width, enemy.getSize().height);
+        if (p_rect.getGlobalBounds().intersects(enemy_rect.getGlobalBounds())) {
+            touching_enemies.emplace_back(enemy);
+        }
+    }
+    return touching_enemies;
+}
+
+// Get the player's health
+int td::Player::getHealth() const {
+    return this->health;
+}
+
+// Set the player's health
+void td::Player::setHealth(int h) {
+    this->health = h;
+}
+
+// Set the player's maximum health
+void td::Player::setMaxHealth(int mh) {
+    this->max_health = mh;
+}
+
+// Decrement the player's health by a given amount
+void td::Player::loseHealth(int health_points) {
+    this->health -= health_points;
+}
+
+// Increment the player's health by a given amount
+void td::Player::gainHealth(int health_points) {
+    this->health += health_points;
+}
+
+// Has the player's health dropped below zero?
+bool td::Player::isDead() const {
+    return this->health < 0;
+}
 //------------------------------------------------------------------------------------------------------------------
 
 
 /* Enemy */
 
 // Constructor/destructor
-td::Enemy::Enemy() = default;
+td::Enemy::Enemy() {
+    this->harm = 1;
+}
 td::Enemy::~Enemy() = default;
 
 // Set the map that the enemy will be on
@@ -464,4 +567,14 @@ void td::Enemy::setStartPosition(float start_x, float start_y) {
 void td::Enemy::setStartTile(int row, int col) {
     this->x = (float)(col * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->width)/2);
     this->y = (float)(row * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->height)/2);
+}
+
+// Get the amount of damage that the enemy does
+int td::Enemy::getHarm() const {
+    return this->harm;
+};
+
+// Set the amount of damage that the enemy does
+void td::Enemy::setHarm(int health_points) {
+    this->harm = health_points;
 }

@@ -23,7 +23,8 @@ bool Game::running() const {
 
 
 // Is the game paused?
-bool Game::paused() const {
+bool Game::paused() {
+    this->pause--;
     return this->pause > 0;
 }
 
@@ -83,6 +84,17 @@ void Game::initMap() {
     sprite_sheet.addSprite('c', sf::Color(139, 246, 153));
     sprite_sheet.addSprite('e', sf::Color(139, 246, 153));
     this->map.setSpriteSheet(sprite_sheet);
+
+    td::Enemy enemy = td::Enemy();
+    enemy.setMap(this->map);
+    enemy.setSize((int)(this->tile_size*0.4), (int)(this->tile_size*0.4));
+    enemy.setColor(sf::Color::Blue);
+    enemy.setHarm(100);
+
+    enemy.setStartTile(5, 8);
+    this->map.addEnemy(enemy);
+    enemy.setStartTile(6, 8);
+    this->map.addEnemy(enemy);
 }
 
 
@@ -95,16 +107,6 @@ void Game::initPlayer() {
                                    sf::Keyboard::S, sf::Keyboard::D);
     this->player.p.setMoveSpeed(30);
     this->player.p.setColor(sf::Color::Red);
-
-    td::Enemy enemy = td::Enemy();
-    enemy.setMap(this->map);
-    enemy.setSize((int)(this->tile_size*0.4), (int)(this->tile_size*0.4));
-    enemy.setStartTile(5, 8);
-    enemy.setColor(sf::Color::Blue);
-
-    this->map.addEnemy(enemy);
-    enemy.setStartTile(6, 8);
-    this->map.addEnemy(enemy);
 }
 
 
@@ -115,13 +117,28 @@ void Game::update() {
     // Handle player movement
     this->player.p.move();
 
+    if (this->player.p.onCheckpoint()) {
+        this->player.p.setCheckpoint();
+    }
+
+    // Handle enemy collision
+    if (this->player.p.isTouchingEnemy()) {
+        std::vector<td::Enemy> touching_enemies = this->player.p.getTouchingEnemies();
+        for (const auto& enemy: touching_enemies) {
+            this->player.p.loseHealth(enemy.getHarm());
+            if (this->player.p.isDead()) {
+                this->player.p.respawn();
+            }
+        }
+    }
+
     /*
     //Private
     this->player.p.setCheckpoint(tile);
     // Public
     DONE -- this->player.p.setMap(map); // Set the map the player is to use and roam around on
-    this->player.p.getHealth(); // Get health
-    this->player.p.isDead();    // If health <= 0
+    DONE -- this->player.p.getHealth(); // Get health
+    DONE -- this->player.p.isDead();    // If health <= 0
     DONE -- this->player.p.spawn();     // Place at starting location
     this->player.p.respawn();   // Place at latest checkpoint or starting location
     */

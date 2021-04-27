@@ -24,6 +24,10 @@ namespace td {
         static int find(std::vector<V> vector, V val);
         template<typename K, typename V>
         static bool keyInMap(std::map<K, V> map, K key);
+        struct size {
+            int width{0};
+            int height{0};
+        };
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -136,11 +140,12 @@ namespace td {
 
         // Getters
         int getTileSize() const;
-        td::Tile getTile(int x, int y);
+        td::Tile getTile(float x, float y);
         std::vector<std::vector<td::Tile>> getMap();
         std::vector<char> getTileType(int type);
         td::Tile getPlayerStartTile();
         sf::Vector2i getMapSize(bool rows_cols = false);
+        std::vector<td::Enemy> getEnemies();
 
         // Setters
         void setSpriteSheet(const td::SpriteSheet& sheet);
@@ -152,6 +157,7 @@ namespace td {
 
         // Collision
         static bool collides(td::Map& map, const std::vector<char>& type_ids, const sf::RectangleShape& rect);
+        static std::vector<td::Tile> getCollisions(td::Map& map, const std::vector<char>& type_ids, const sf::RectangleShape& rect);
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -165,6 +171,7 @@ namespace td {
 
         // Gameplay
         std::vector<char> inventory;
+        td::Tile checkpoint;
     protected:
         // Position
         float x;
@@ -201,7 +208,7 @@ namespace td {
         void draw(sf::RenderTarget* target) const;
         void setColor(sf::Color c);
 
-        // Movement and collision
+        // Movement
         void move();
         void setMovementKeys(sf::Keyboard::Key up, sf::Keyboard::Key left, sf::Keyboard::Key down,
                              sf::Keyboard::Key right);
@@ -209,14 +216,34 @@ namespace td {
 
         // Position
         void spawn();
+        void respawn();
         sf::Vector2f getPosition(bool center=false) const;
 
+        // Checkpoints
+        bool onCheckpoint();
+        void setCheckpoint();
+
         // Size
+        td::Util::size getSize() const;
         void setSize(int w, int h, bool center_in_tile = false);
+
+        // Enemy interaction
+        bool isTouchingEnemy();
+        std::vector<td::Enemy> getTouchingEnemies();
+
+        // Health
+        int getHealth() const;
+        void setHealth(int h);
+        void setMaxHealth(int mh);
+        void loseHealth(int health_points);
+        void gainHealth(int health_points);
+        bool isDead() const;
     };
     //------------------------------------------------------------------------------------------------------------------
 
     class Enemy : public Player {
+    private:
+        int harm;
     public:
         // Constructor/destructor
         Enemy();
@@ -228,6 +255,10 @@ namespace td {
         // Position
         void setStartPosition(float start_x, float start_y);
         void setStartTile(int row, int col);
+
+        // Harm
+        int getHarm() const;
+        void setHarm(int health_points);
     };
 
 }
