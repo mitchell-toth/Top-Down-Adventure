@@ -771,7 +771,7 @@ WARN_LOGFILE           =
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = TDAHelper/library.hpp TDAHelper/library.cpp Game2/main.cpp Game2/Game.h Game2/Game.cpp Game2/Player.h Game2/Player.cpp Game2/Maps.h Game2/Maps.cpp Game1/main.cpp
+INPUT                  = TDAHelper Game2 Game1
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
