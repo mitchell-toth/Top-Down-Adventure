@@ -1,5 +1,9 @@
 #include "Maps.h"
 
+/*
+ * @brief Hello world
+ * @param tile_size The tile size
+ */
 std::vector<td::Map> Maps::initMaps(int tile_size) {
     /* Configuration: */
     // Create a sprite sheet and ID mapping to use with the maps
@@ -50,6 +54,13 @@ std::vector<td::Map> Maps::initMaps(int tile_size) {
     // Add map
     maps.emplace_back(map2);
     //------------------------------------------------------------------------------------------------------------------
+
+    /*
+     *
+     *
+     *
+     * Test comment
+     */
 
     return maps;
 }
