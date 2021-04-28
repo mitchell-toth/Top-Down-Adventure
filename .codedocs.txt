@@ -14,7 +14,7 @@
 # paths will be considered relative to the root of the repository, not the
 # location of the DOXYFILE.
 
-DOXYFILE = Doxyfile
+DOXYFILE =
 
 # Specify external repository to link documentation with.
 # This is similar to Doxygen's TAGFILES option, but will automatically link to
@@ -70,7 +70,7 @@ TAGLINKS =
 # EXAMPLE_PATH =
 # EXAMPLE_PATTERNS =
 # EXAMPLE_RECURSIVE =
-# EXCLUDE = /SFML
+# EXCLUDE = ./SFML
 # EXCLUDE_PATTERNS =
 # EXCLUDE_SYMBOLS =
 # EXPAND_AS_DEFINED =
@@ -131,7 +131,7 @@ TAGLINKS =
 # INLINE_INHERITED_MEMB =
 # INLINE_SIMPLE_STRUCTS =
 # INLINE_SOURCES =
-# INPUT = /TDAHelper /Game2 /Game1
+# INPUT = ./TDAHelper ./Game2 ./Game1
 # INPUT_ENCODING =
 # INTERACTIVE_SVG =
 # INTERNAL_DOCS =
