@@ -15,6 +15,7 @@
 namespace td {
     // Forward declarations
     class Enemy;
+    class Item;
 
     // Classes:
     //------------------------------------------------------------------------------------------------------------------
@@ -110,11 +111,14 @@ namespace td {
         td::SpriteSheet sprite_sheet{};
 
         // Player
-        int player_start_row;
-        int player_start_col;
+        int player_start_row{};
+        int player_start_col{};
 
         // Enemies
         std::vector<td::Enemy> enemies;
+
+        // Items
+        std::vector<td::Item> items;
 
         // Initialization
         void initVariables();
@@ -140,6 +144,7 @@ namespace td {
         // Render
         void draw(sf::RenderTarget* target);
         void drawEnemies(sf::RenderTarget* target);
+        void drawItems(sf::RenderTarget* target);
 
         // Getters
         int getTileSize() const;
@@ -149,6 +154,7 @@ namespace td {
         td::Tile getPlayerStartTile();
         sf::Vector2i getMapSize(bool rows_cols = false);
         std::vector<td::Enemy> getEnemies();
+        std::vector<td::Item> getItems();
 
         // Setters
         void setSpriteSheet(const td::SpriteSheet& sheet);
@@ -158,23 +164,17 @@ namespace td {
         // Enemies
         void addEnemy(const td::Enemy& enemy);
 
+        // Items
+        void addItem(td::Item& item);
+
+
         // Collision
         static bool collides(td::Map& map, const std::vector<char>& type_ids, const sf::RectangleShape& rect);
         static std::vector<td::Tile> getCollisions(td::Map& map, const std::vector<char>& type_ids, const sf::RectangleShape& rect);
     };
     //------------------------------------------------------------------------------------------------------------------
 
-    class Player {
-    private:
-        // Movement
-        sf::Keyboard::Key up_key;
-        sf::Keyboard::Key left_key;
-        sf::Keyboard::Key down_key;
-        sf::Keyboard::Key right_key;
-
-        // Gameplay
-        std::vector<char> inventory;
-        td::Tile checkpoint;
+    class RenderObject {
     protected:
         // Position
         float x;
@@ -189,7 +189,41 @@ namespace td {
 
         // Map
         td::Map map;
+    public:
+        RenderObject();
+        ~RenderObject();
 
+        // Map
+        virtual void setMap(td::Map& m);
+
+        // Position
+        sf::Vector2f getPosition(bool center=false) const;
+        void setStartPosition(float start_x, float start_y);
+        void setStartTile(int row, int col);
+
+        // Render
+        virtual void draw(sf::RenderTarget* target) const;
+        void setColor(sf::Color c);
+
+        // Size
+        td::Util::size getSize() const;
+        void setSize(int w, int h, bool center_in_tile = false);
+    };
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    class Player : public RenderObject {
+    private:
+        // Movement
+        sf::Keyboard::Key up_key;
+        sf::Keyboard::Key left_key;
+        sf::Keyboard::Key down_key;
+        sf::Keyboard::Key right_key;
+
+        // Gameplay
+        std::vector<td::Item> inventory;
+        td::Tile checkpoint;
+    protected:
         // Movement
         float speed;
 
@@ -205,11 +239,10 @@ namespace td {
         ~Player();
 
         // Map
-        virtual void setMap(td::Map& m);
+        void setMap(td::Map& m) override;
 
         // Render
-        void draw(sf::RenderTarget* target) const;
-        void setColor(sf::Color c);
+        void draw(sf::RenderTarget* target) const override;
 
         // Movement
         void move(float elapsed);
@@ -220,7 +253,6 @@ namespace td {
         // Position
         void spawn();
         void respawn();
-        sf::Vector2f getPosition(bool center=false) const;
 
         // Checkpoints
         bool onCheckpoint();
@@ -229,13 +261,18 @@ namespace td {
         // End tiles
         bool onEnd();
 
-        // Size
-        td::Util::size getSize() const;
-        void setSize(int w, int h, bool center_in_tile = false);
-
         // Enemy interaction
         bool isTouchingEnemy();
         std::vector<td::Enemy> getTouchingEnemies();
+
+        // Item interaction
+        bool isTouchingItem();
+        std::vector<td::Item> getTouchingItems();
+        void obtainItem(td::Item item);
+
+        // Inventory
+        std::vector<td::Item> getInventory();
+        void clearInventory();
 
         // Health
         int getHealth() const;
@@ -258,15 +295,26 @@ namespace td {
         // Map
         void setMap(td::Map& m) override;
 
-        // Position
-        void setStartPosition(float start_x, float start_y);
-        void setStartTile(int row, int col);
-
         // Harm
         int getHarm() const;
         void setHarm(int health_points);
     };
+    //------------------------------------------------------------------------------------------------------------------
 
+    class Item : public RenderObject {
+    private:
+        bool obtained;
+    public:
+        Item();
+        ~Item();
+
+        // Render
+        void draw(sf::RenderTarget* target) const override;
+
+        // Obtained status
+        bool isObtained() const;
+        void setObtained(bool item_obtained);
+    };
 }
 
 #endif //ENGINE_LIBRARY_HPP

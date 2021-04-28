@@ -114,6 +114,15 @@ void Game::update() {
         }
     }
 
+    // Handle item collision
+    if (this->player.p.isTouchingItem()) {
+        std::cout << "Touching item" << std::endl;
+        std::vector<td::Item> touching_items = this->player.p.getTouchingItems();
+        for (const auto& item: touching_items) {
+            this->player.p.obtainItem(item);
+        }
+    }
+
     // Respawn if player is dead
     if (this->player.p.isDead()) {
         this->pauseRespawn();
@@ -149,6 +158,8 @@ void Game::render() {
 
     // Render enemies
     this->current_map.drawEnemies(this->window);
+    // Render items
+    this->current_map.drawItems(this->window);
 
     // Display what has been rendered
     this->window->display();

@@ -159,6 +159,8 @@ void td::Map::initVariables() {
     };
     this->player_start_row = 0;
     this->player_start_col = 0;
+    this->enemies = std::vector<td::Enemy>();
+    this->items = std::vector<td::Item>();
 }
 
 // Read in a file path for the game map and translate it to a 2D vector
@@ -194,6 +196,7 @@ void td::Map::readMap(const std::string &path) {
                 this->player_start_col = (int)c/2;
                 start_tile_set = true;
             }
+
             this->map[r].emplace_back(tile);
         }
         r++;
@@ -215,6 +218,12 @@ void td::Map::draw(sf::RenderTarget* target) {
 void td::Map::drawEnemies(sf::RenderTarget *target) {
     for (const auto& enemy: this->enemies) {
         enemy.draw(target);
+    }
+}
+
+void td::Map::drawItems(sf::RenderTarget *target) {
+    for (const auto& item: this->items) {
+        item.draw(target);
     }
 }
 
@@ -260,6 +269,11 @@ std::vector<td::Enemy> td::Map::getEnemies() {
     return this->enemies;
 }
 
+// Get the map's items
+std::vector<td::Item> td::Map::getItems() {
+    return this->items;
+}
+
 // Set the map's sprite sheet, used to determine what to draw at each tile
 void td::Map::setSpriteSheet(const td::SpriteSheet& sheet) {
     this->sprite_sheet = sheet;
@@ -281,6 +295,11 @@ void td::Map::setTileType(int type, std::vector<char> type_ids) {
 // Add an enemy to the map
 void td::Map::addEnemy(const td::Enemy& enemy) {
     this->enemies.emplace_back(enemy);
+}
+
+// Add an item to the map
+void td::Map::addItem(td::Item& item) {
+    this->items.emplace_back(item);
 }
 
 // Checks if the player is colliding with any tiles of a certain type
@@ -322,6 +341,78 @@ td::Map::getCollisions(td::Map &map, const std::vector<char> &type_ids, const sf
 }
 //------------------------------------------------------------------------------------------------------------------
 
+/* RenderObject */
+
+// Constructor/destructor
+td::RenderObject::RenderObject() {
+    // Position
+    this->x = 0;
+    this->y = 0;
+
+    // Size
+    this->width = td::Tile::DEFAULT_TILE_SIZE;
+    this->height = td::Tile::DEFAULT_TILE_SIZE;
+
+    // Color
+    this->color = sf::Color::White;
+}
+td::RenderObject::~RenderObject()=default;
+
+// Set the map that the player will roam around
+void td::RenderObject::setMap(td::Map &m) {
+    this->map = m;
+}
+
+// Get the player's position
+// Optionally set 'center' to true to get the position from the player's center
+sf::Vector2f td::RenderObject::getPosition(bool center) const {
+    if (center)
+        return {this->x + ((float)this->width/2), this->y + ((float)this->height/2)};
+    return {this->x, this->y};
+}
+
+// Set starting position, x and y
+void td::RenderObject::setStartPosition(float start_x, float start_y) {
+    this->x = start_x;
+    this->y = start_y;
+}
+
+// Set starting position, row and col
+void td::RenderObject::setStartTile(int row, int col) {
+    this->x = (float)(col * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->width)/2);
+    this->y = (float)(row * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->height)/2);
+}
+
+// Draw the player
+void td::RenderObject::draw(sf::RenderTarget* target) const {
+    sf::RectangleShape rect = td::Shapes::rect(this->x, this->y,this->width, this->height);
+    rect.setFillColor(this->color);
+    target->draw(rect);
+}
+
+// Set the player's color
+void td::RenderObject::setColor(sf::Color c) {
+    this->color = c;
+}
+
+// Get the player's width and height
+td::Util::size td::RenderObject::getSize() const {
+    return {this->width, this->height};
+}
+
+// Set the player's width and height
+void td::RenderObject::setSize(int w, int h, bool center_in_tile) {
+    this->width = w;
+    this->height = h;
+    if (center_in_tile) {
+        this->x += ((float)(this->map.getTileSize()-this->width)/2);
+        this->y += ((float)(this->map.getTileSize()-this->height)/2);
+    }
+}
+
+
+//------------------------------------------------------------------------------------------------------------------
+
 
 /* Player */
 
@@ -348,7 +439,7 @@ td::Player::Player() {
     // Gameplay
     this->max_health = 100;
     this->health = this->max_health;
-    this->inventory = std::vector<char>();
+    this->inventory = std::vector<td::Item>();
     this->checkpoint = td::Tile('0', this->map.getTileType(td::Map::TileTypes::CHECKPOINT).front(), 0, 0);
 }
 // Destructor
@@ -366,11 +457,6 @@ void td::Player::draw(sf::RenderTarget* target) const {
     sf::RectangleShape rect = td::Shapes::rect(this->x, this->y,this->width, this->height);
     rect.setFillColor(this->color);
     target->draw(rect);
-}
-
-// Set the player's color
-void td::Player::setColor(sf::Color c) {
-    this->color = c;
 }
 
 // Listen for player movement
@@ -445,14 +531,6 @@ void td::Player::respawn() {
     this->y = pos.y + ((float)(this->map.getTileSize()-this->height)/2);
 }
 
-// Get the player's position
-// Optionally set 'center' to true to get the position from the player's center
-sf::Vector2f td::Player::getPosition(bool center) const {
-    if (center)
-        return {this->x + ((float)this->width/2), this->y + ((float)this->height/2)};
-    return {this->x, this->y};
-}
-
 // Check if the player is currently colliding with a checkpoint tile
 bool td::Player::onCheckpoint() {
     sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
@@ -481,27 +559,12 @@ bool td::Player::onEnd() {
     return td::Map::collides(this->map, this->map.getTileType(td::Map::TileTypes::END), p_rect);
 }
 
-// Get the player's width and height
-td::Util::size td::Player::getSize() const {
-    return {this->width, this->height};
-}
-
-// Set the player's width and height
-void td::Player::setSize(int w, int h, bool center_in_tile) {
-    this->width = w;
-    this->height = h;
-    if (center_in_tile) {
-        this->x += ((float)(this->map.getTileSize()-this->width)/2);
-        this->y += ((float)(this->map.getTileSize()-this->height)/2);
-    }
-}
-
 // Check if the player is currently colliding with an enemy
 bool td::Player::isTouchingEnemy() {
     return !this->getTouchingEnemies().empty();
 }
 
-// Get the enemy that the player is touching
+// Get the enemies that the player is touching
 std::vector<td::Enemy> td::Player::getTouchingEnemies() {
     std::vector<td::Enemy> touching_enemies = std::vector<td::Enemy>();
 
@@ -514,6 +577,49 @@ std::vector<td::Enemy> td::Player::getTouchingEnemies() {
         }
     }
     return touching_enemies;
+}
+
+// Check if the player is currently colliding with any un-obtained items
+bool td::Player::isTouchingItem() {
+    return !this->getTouchingItems().empty();
+}
+
+// Get the items that the player is touching
+std::vector<td::Item> td::Player::getTouchingItems() {
+    std::vector<td::Item> touching_items = std::vector<td::Item>();
+
+    sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
+    for (auto& item : this->map.getItems()) {
+        if (!item.isObtained()) {
+            sf::RectangleShape item_rect = td::Shapes::rect(
+                    item.getPosition().x, item.getPosition().y, item.getSize().width, item.getSize().height);
+            if (p_rect.getGlobalBounds().intersects(item_rect.getGlobalBounds())) {
+                touching_items.emplace_back(item);
+            }
+        }
+    }
+    return touching_items;
+}
+
+// Add an item to the player's inventory.
+// Then set that item's 'obtained' status to true
+void td::Player::obtainItem(td::Item item) {
+    this->inventory.emplace_back(item);
+    item.setObtained(true);
+}
+
+// Get a vector of the player's obtained items
+std::vector<td::Item> td::Player::getInventory() {
+    return this->inventory;
+}
+
+// Clear the player's inventory.
+// Take care to set each item's state back to un-obtained
+void td::Player::clearInventory() {
+    for (auto& item: this->inventory) {
+        item.setObtained(false);
+    }
+    this->inventory.clear();
 }
 
 // Get the player's health
@@ -562,18 +668,6 @@ void td::Enemy::setMap(td::Map& m) {
     this->map = m;
 }
 
-// Set starting x and y
-void td::Enemy::setStartPosition(float start_x, float start_y) {
-    this->x = start_x;
-    this->y = start_y;
-}
-
-// Set starting tile row and column
-void td::Enemy::setStartTile(int row, int col) {
-    this->x = (float)(col * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->width)/2);
-    this->y = (float)(row * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->height)/2);
-}
-
 // Get the amount of damage that the enemy does
 int td::Enemy::getHarm() const {
     return this->harm;
@@ -582,4 +676,34 @@ int td::Enemy::getHarm() const {
 // Set the amount of damage that the enemy does
 void td::Enemy::setHarm(int health_points) {
     this->harm = health_points;
+}
+//------------------------------------------------------------------------------------------------------------------
+
+
+/* Item */
+
+// Constructor/destructor
+td::Item::Item() : RenderObject() {
+    this->obtained = false;
+}
+td::Item::~Item() = default;
+
+// Render the item, but don't render it if it has been obtained already
+void td::Item::draw(sf::RenderTarget* target) const {
+    //std::cout << "Obtained: " << this->obtained << std::endl;
+    if (!this->obtained) {
+        sf::RectangleShape rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
+        rect.setFillColor(this->color);
+        target->draw(rect);
+    }
+}
+
+// Has the item been obtained by the player?
+bool td::Item::isObtained() const {
+    return this->obtained;
+}
+
+// Set if the item should be consider obtained
+void td::Item::setObtained(bool item_obtained) {
+    this->obtained = item_obtained;
 }

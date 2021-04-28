@@ -23,6 +23,11 @@ std::vector<td::Map> Maps::initMaps(int tile_size) {
     enemy.setColor(sf::Color::Blue);
     enemy.setHarm(100);
 
+    // Coin config
+    td::Item item = td::Item();
+    item.setSize((int)(tile_size*0.4), (int)(tile_size*0.4));
+    item.setColor(sf::Color::Yellow);
+
     // Initialize the maps object to return
     std::vector<td::Map> maps = std::vector<td::Map>();
     //------------------------------------------------------------------------------------------------------------------
@@ -36,6 +41,9 @@ std::vector<td::Map> Maps::initMaps(int tile_size) {
     enemy.setMap(map1);
     enemy.setStartTile(5, 8); map1.addEnemy(enemy);
     enemy.setStartTile(6, 8); map1.addEnemy(enemy);
+    // Add coins
+    item.setStartTile(3, 3); map1.addItem(item);
+    item.setStartTile(5, 5); map1.addItem(item);
 
     // Add map
     maps.emplace_back(map1);
