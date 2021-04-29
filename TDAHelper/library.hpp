@@ -118,7 +118,7 @@ namespace td {
         std::vector<td::Enemy> enemies;
 
         // Items
-        std::vector<td::Item> items;
+        std::vector<td::Item*> items;
 
         // Initialization
         void initVariables();
@@ -154,7 +154,7 @@ namespace td {
         td::Tile getPlayerStartTile();
         sf::Vector2i getMapSize(bool rows_cols = false);
         std::vector<td::Enemy> getEnemies();
-        std::vector<td::Item> getItems();
+        std::vector<td::Item*>* getItems();
 
         // Setters
         void setSpriteSheet(const td::SpriteSheet& sheet);
@@ -165,7 +165,7 @@ namespace td {
         void addEnemy(const td::Enemy& enemy);
 
         // Items
-        void addItem(td::Item& item);
+        void addItem(td::Item* item);
 
 
         // Collision
@@ -221,7 +221,7 @@ namespace td {
         sf::Keyboard::Key right_key;
 
         // Gameplay
-        std::vector<td::Item> inventory;
+        std::vector<td::Item*> inventory;
         td::Tile checkpoint;
     protected:
         // Movement
@@ -267,11 +267,11 @@ namespace td {
 
         // Item interaction
         bool isTouchingItem();
-        std::vector<td::Item> getTouchingItems();
-        void obtainItem(td::Item item);
+        std::vector<td::Item*> getTouchingItems();
+        void obtainItem(td::Item* item);
 
         // Inventory
-        std::vector<td::Item> getInventory();
+        std::vector<td::Item*> getInventory();
         void clearInventory();
 
         // Health
@@ -306,6 +306,7 @@ namespace td {
         bool obtained;
     public:
         Item();
+        Item(int width, int height, sf::Color color);
         ~Item();
 
         // Render

@@ -160,7 +160,7 @@ void td::Map::initVariables() {
     this->player_start_row = 0;
     this->player_start_col = 0;
     this->enemies = std::vector<td::Enemy>();
-    this->items = std::vector<td::Item>();
+    this->items = std::vector<td::Item*>();
 }
 
 // Read in a file path for the game map and translate it to a 2D vector
@@ -222,8 +222,8 @@ void td::Map::drawEnemies(sf::RenderTarget *target) {
 }
 
 void td::Map::drawItems(sf::RenderTarget *target) {
-    for (const auto& item: this->items) {
-        item.draw(target);
+    for (auto item: this->items) {
+        item->draw(target);
     }
 }
 
@@ -270,8 +270,8 @@ std::vector<td::Enemy> td::Map::getEnemies() {
 }
 
 // Get the map's items
-std::vector<td::Item> td::Map::getItems() {
-    return this->items;
+std::vector<td::Item*>* td::Map::getItems() {
+    return &this->items;
 }
 
 // Set the map's sprite sheet, used to determine what to draw at each tile
@@ -298,7 +298,7 @@ void td::Map::addEnemy(const td::Enemy& enemy) {
 }
 
 // Add an item to the map
-void td::Map::addItem(td::Item& item) {
+void td::Map::addItem(td::Item* item) {
     this->items.emplace_back(item);
 }
 
@@ -439,7 +439,7 @@ td::Player::Player() {
     // Gameplay
     this->max_health = 100;
     this->health = this->max_health;
-    this->inventory = std::vector<td::Item>();
+    this->inventory = std::vector<td::Item*>();
     this->checkpoint = td::Tile('0', this->map.getTileType(td::Map::TileTypes::CHECKPOINT).front(), 0, 0);
 }
 // Destructor
@@ -585,14 +585,14 @@ bool td::Player::isTouchingItem() {
 }
 
 // Get the items that the player is touching
-std::vector<td::Item> td::Player::getTouchingItems() {
-    std::vector<td::Item> touching_items = std::vector<td::Item>();
+std::vector<td::Item*> td::Player::getTouchingItems() {
+    std::vector<td::Item*> touching_items = std::vector<td::Item*>();
 
     sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
-    for (auto& item : this->map.getItems()) {
-        if (!item.isObtained()) {
+    for (auto& item : *this->map.getItems()) {
+        if (!item->isObtained()) {
             sf::RectangleShape item_rect = td::Shapes::rect(
-                    item.getPosition().x, item.getPosition().y, item.getSize().width, item.getSize().height);
+                    item->getPosition().x, item->getPosition().y, item->getSize().width, item->getSize().height);
             if (p_rect.getGlobalBounds().intersects(item_rect.getGlobalBounds())) {
                 touching_items.emplace_back(item);
             }
@@ -603,21 +603,21 @@ std::vector<td::Item> td::Player::getTouchingItems() {
 
 // Add an item to the player's inventory.
 // Then set that item's 'obtained' status to true
-void td::Player::obtainItem(td::Item item) {
+void td::Player::obtainItem(td::Item* item) {
     this->inventory.emplace_back(item);
-    item.setObtained(true);
+    item->setObtained(true);
 }
 
 // Get a vector of the player's obtained items
-std::vector<td::Item> td::Player::getInventory() {
+std::vector<td::Item*> td::Player::getInventory() {
     return this->inventory;
 }
 
 // Clear the player's inventory.
 // Take care to set each item's state back to un-obtained
 void td::Player::clearInventory() {
-    for (auto& item: this->inventory) {
-        item.setObtained(false);
+    for (auto item: this->inventory) {
+        item->setObtained(false);
     }
     this->inventory.clear();
 }
@@ -686,11 +686,16 @@ void td::Enemy::setHarm(int health_points) {
 td::Item::Item() : RenderObject() {
     this->obtained = false;
 }
+td::Item::Item(int width, int height, sf::Color color) : RenderObject() {
+    this->obtained = false;
+    this->width = width;
+    this->height = height;
+    this->color = color;
+}
 td::Item::~Item() = default;
 
 // Render the item, but don't render it if it has been obtained already
 void td::Item::draw(sf::RenderTarget* target) const {
-    //std::cout << "Obtained: " << this->obtained << std::endl;
     if (!this->obtained) {
         sf::RectangleShape rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
         rect.setFillColor(this->color);

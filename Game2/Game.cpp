@@ -13,6 +13,12 @@ Game::Game() {
 // Destructor
 Game::~Game() {
     delete this->window;
+    // Release each map's item references
+    for (auto map : this->maps) {
+        for (auto item : *map.getItems()) {
+            delete &item;
+        }
+    }
 }
 
 
@@ -116,9 +122,8 @@ void Game::update() {
 
     // Handle item collision
     if (this->player.p.isTouchingItem()) {
-        std::cout << "Touching item" << std::endl;
-        std::vector<td::Item> touching_items = this->player.p.getTouchingItems();
-        for (const auto& item: touching_items) {
+        std::vector<td::Item*> touching_items = this->player.p.getTouchingItems();
+        for (auto item: touching_items) {
             this->player.p.obtainItem(item);
         }
     }
@@ -130,7 +135,10 @@ void Game::update() {
 
     // Check if the player has reached the end goal
     if (this->player.p.onEnd()) {
-        this->loadNextMap();
+        // Don't advance to the next map if the player hasn't collected all the map's coins
+        if (this->player.p.getInventory().size() == this->current_map.getItems()->size()) {
+            this->loadNextMap();
+        }
     }
 }
 
@@ -194,11 +202,11 @@ void Game::pauseRespawn() {
 void Game::loadNextMap() {
     this->map_index++;
     if (this->map_index >= this->maps.size()) {
-        std::cout << "Winner" << std::endl;
         this->map_index = 0;  // Loop back around to the first map
     }
     // Get the next map
     this->current_map = this->maps[this->map_index];
     // Configure player to use the new map
     this->player.p.setMap(this->current_map);
+    this->player.p.clearInventory();
 }
