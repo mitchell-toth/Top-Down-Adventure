@@ -17,6 +17,11 @@ bool td::Util::keyInMap(std::map<K, V> map, K key) {
     if (map.count(key) != 0) return true;
     return false;
 }
+
+// Calculate the distance between two points
+float td::Util::dist(float x1, float y1, float x2, float y2) {
+    return (float)std::sqrt(std::pow(x2-x1, 2) +std::pow(y2-y1, 2));
+}
 //------------------------------------------------------------------------------------------------------------------
 
 
@@ -159,7 +164,7 @@ void td::Map::initVariables() {
     };
     this->player_start_row = 0;
     this->player_start_col = 0;
-    this->enemies = std::vector<td::Enemy>();
+    this->enemies = std::vector<td::Enemy*>();
     this->items = std::vector<td::Item*>();
 }
 
@@ -216,8 +221,8 @@ void td::Map::draw(sf::RenderTarget* target) {
 
 // Display the map's enemies
 void td::Map::drawEnemies(sf::RenderTarget *target) {
-    for (const auto& enemy: this->enemies) {
-        enemy.draw(target);
+    for (auto& enemy: this->enemies) {
+        enemy->draw(target);
     }
 }
 
@@ -265,8 +270,8 @@ sf::Vector2i td::Map::getMapSize(bool rows_cols) {
 }
 
 // Get the map's enemies
-std::vector<td::Enemy> td::Map::getEnemies() {
-    return this->enemies;
+std::vector<td::Enemy*>* td::Map::getEnemies() {
+    return &this->enemies;
 }
 
 // Get the map's items
@@ -293,13 +298,34 @@ void td::Map::setTileType(int type, std::vector<char> type_ids) {
 }
 
 // Add an enemy to the map
-void td::Map::addEnemy(const td::Enemy& enemy) {
+void td::Map::addEnemy(td::Enemy* enemy) {
     this->enemies.emplace_back(enemy);
+}
+
+// Move all enemies
+void td::Map::moveEnemies(float elapsed) {
+    for (auto enemy : this->enemies) {
+        enemy->move(elapsed);
+    }
+}
+
+// Reset all enemies to their starting locations
+void td::Map::resetEnemies() {
+    for (auto enemy : this->enemies) {
+        enemy->reset();
+    }
 }
 
 // Add an item to the map
 void td::Map::addItem(td::Item* item) {
     this->items.emplace_back(item);
+}
+
+// Reset all items to be un-obtained
+void td::Map::resetItems() {
+    for (auto item : this->items) {
+        item->reset();
+    }
 }
 
 // Checks if the player is colliding with any tiles of a certain type
@@ -565,13 +591,13 @@ bool td::Player::isTouchingEnemy() {
 }
 
 // Get the enemies that the player is touching
-std::vector<td::Enemy> td::Player::getTouchingEnemies() {
-    std::vector<td::Enemy> touching_enemies = std::vector<td::Enemy>();
+std::vector<td::Enemy*> td::Player::getTouchingEnemies() {
+    std::vector<td::Enemy*> touching_enemies = std::vector<td::Enemy*>();
 
     sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
-    for (const auto& enemy : this->map.getEnemies()) {
+    for (auto enemy : *this->map.getEnemies()) {
         sf::RectangleShape enemy_rect = td::Shapes::rect(
-                enemy.getPosition().x, enemy.getPosition().y, enemy.getSize().width, enemy.getSize().height);
+                enemy->getPosition().x, enemy->getPosition().y, enemy->getSize().width, enemy->getSize().height);
         if (p_rect.getGlobalBounds().intersects(enemy_rect.getGlobalBounds())) {
             touching_enemies.emplace_back(enemy);
         }
@@ -659,8 +685,32 @@ bool td::Player::isDead() const {
 // Constructor/destructor
 td::Enemy::Enemy() {
     this->harm = 1;
+    this->waypoints = {};
+    this->move_option = td::Enemy::MoveOptions::LOOP;
+    this->current_waypoint_index = 0;
+}
+td::Enemy::Enemy(const td::Map& map, int width, int height, sf::Color color, int harm) {
+    this->map = map;
+    this->width = width;
+    this->height = height;
+    this->color = color;
+    this->harm = harm;
+    this->waypoints = {};
+    this->move_option = td::Enemy::MoveOptions::LOOP;
+    this->current_waypoint_index = 0;
 }
 td::Enemy::~Enemy() = default;
+
+// Reset the enemy's position to the starting waypoint
+void td::Enemy::reset() {
+    if (!this->waypoints.empty()) {
+        this->x = this->waypoints[0].x;
+        this->y = this->waypoints[0].y;
+    }
+    else {
+        this->x = 0; this->y = 0;
+    }
+}
 
 // Set the map that the enemy will be on
 // Overwrites base Player setMap() so that the call to spawn() is omitted
@@ -676,6 +726,109 @@ int td::Enemy::getHarm() const {
 // Set the amount of damage that the enemy does
 void td::Enemy::setHarm(int health_points) {
     this->harm = health_points;
+}
+
+// Set the waypoints the enemy should follow when moving
+void td::Enemy::setWaypoints(const std::vector<sf::Vector2f>& enemy_waypoints, bool tiles) {
+    std::vector<sf::Vector2f> position_waypoints = enemy_waypoints;
+    // If tiles passed in, translate the rows and columns to x and y positions
+    if (tiles) {
+        for (auto& waypoint : position_waypoints) {
+            // Rows stored in x, columns stored in y. Switch them and multiply by tile_size
+            float translated_col = waypoint.y * (float)this->map.getTileSize()
+                    + ((float)(this->map.getTileSize()-this->width)/2);
+            float translated_row = waypoint.x * (float)this->map.getTileSize()
+                    + ((float)(this->map.getTileSize()-this->height)/2);
+            waypoint.x = translated_col;
+            waypoint.y = translated_row;
+        }
+    }
+    this->waypoints = position_waypoints;
+
+    if (!this->waypoints.empty()) {
+        this->x = this->waypoints[0].x;
+        this->y = this->waypoints[0].y;
+    }
+}
+
+void td::Enemy::setMoveOption(int enemy_move_option) {
+    this->move_option = enemy_move_option;
+}
+
+// Update the enemy's first waypoint
+void td::Enemy::setStartPosition(float start_x, float start_y) {
+    if (!this->waypoints.empty()) {
+        this->waypoints[0] = {start_x, start_y};
+    }
+}
+void td::Enemy::setStartTile(int row, int col) {
+    if (!this->waypoints.empty()) {
+        this->waypoints[0] = {
+                (float)(col * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->width)/2),
+                (float)(row * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->height)/2)
+        };
+    }
+}
+
+// Move the enemy, following a set of waypoints
+void td::Enemy::move(float elapsed) {
+    sf::Vector2f target_waypoint = this->waypoints[(this->current_waypoint_index + 1) % this->waypoints.size()];
+
+    float current_x = this->x;
+    float current_y = this->y;
+
+    // Move the enemy toward the target waypoint
+    float target_x = target_waypoint.x;
+    float target_y = target_waypoint.y;
+
+    // Get line slope, y = mx + b
+    float m;
+    if (target_x == current_x) { m = 1; }
+    else { m = ((target_y - current_y)*-1) / (target_x - current_x); }
+
+    // Get how much x and y should be updated
+    float dx;
+    float dy;
+    if (std::abs(m) >= 1) {
+        dx = this->speed * elapsed * m;
+        dy = this->speed * elapsed;
+    }
+    else {
+        dx = this->speed * elapsed;
+        dy = this->speed * elapsed * m;
+    }
+
+    // Get signs
+    float sign_x;
+    if (current_x > target_x) { sign_x = -1; }
+    else if (current_x < target_x) { sign_x = 1; }
+    else { sign_x = 0; }
+
+    float sign_y;
+    if (current_y > target_y) { sign_y = -1; }
+    else if (current_y < target_y) { sign_y = 1; }
+    else { sign_y = 0; }
+
+    // Get the new x and y
+    float new_x = (current_x + (sign_x * dx));
+    float new_y = (current_y + (sign_y * dy));
+
+    // Get distance to target. If distance is within reach, snap to it
+    float distance_remaining = std::abs(td::Util::dist(current_x, current_y, target_x, target_y));
+    float distance_traveled = std::abs(td::Util::dist(current_x, current_y, new_x, new_y));
+    if (distance_traveled > distance_remaining) {
+        new_x = target_x;
+        new_y = target_y;
+    }
+
+    // If reached target waypoint, update waypoint index
+    if (new_x == target_x && new_y == target_y) {
+        this->current_waypoint_index = (this->current_waypoint_index + 1) % this->waypoints.size();
+    }
+
+    // Update the enemy's x and y
+    this->x = new_x;
+    this->y = new_y;
 }
 //------------------------------------------------------------------------------------------------------------------
 
@@ -693,6 +846,11 @@ td::Item::Item(int width, int height, sf::Color color) : RenderObject() {
     this->color = color;
 }
 td::Item::~Item() = default;
+
+// Reset the item's state to un-obtained
+void td::Item::reset() {
+    this->obtained = false;
+}
 
 // Render the item, but don't render it if it has been obtained already
 void td::Item::draw(sf::RenderTarget* target) const {

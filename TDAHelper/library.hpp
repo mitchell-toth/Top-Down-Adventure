@@ -30,6 +30,7 @@ namespace td {
             int width{0};
             int height{0};
         };
+        static float dist(float x1, float y1, float x2, float y2);
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -115,7 +116,7 @@ namespace td {
         int player_start_col{};
 
         // Enemies
-        std::vector<td::Enemy> enemies;
+        std::vector<td::Enemy*> enemies;
 
         // Items
         std::vector<td::Item*> items;
@@ -153,7 +154,7 @@ namespace td {
         std::vector<char> getTileType(int type);
         td::Tile getPlayerStartTile();
         sf::Vector2i getMapSize(bool rows_cols = false);
-        std::vector<td::Enemy> getEnemies();
+        std::vector<td::Enemy*>* getEnemies();
         std::vector<td::Item*>* getItems();
 
         // Setters
@@ -162,10 +163,13 @@ namespace td {
         void setTileType(int type, std::vector<char> type_id);
 
         // Enemies
-        void addEnemy(const td::Enemy& enemy);
+        void addEnemy(td::Enemy* enemy);
+        void moveEnemies(float elapsed);
+        void resetEnemies();
 
         // Items
         void addItem(td::Item* item);
+        void resetItems();
 
 
         // Collision
@@ -198,8 +202,8 @@ namespace td {
 
         // Position
         sf::Vector2f getPosition(bool center=false) const;
-        void setStartPosition(float start_x, float start_y);
-        void setStartTile(int row, int col);
+        virtual void setStartPosition(float start_x, float start_y);
+        virtual void setStartTile(int row, int col);
 
         // Render
         virtual void draw(sf::RenderTarget* target) const;
@@ -245,7 +249,7 @@ namespace td {
         void draw(sf::RenderTarget* target) const override;
 
         // Movement
-        void move(float elapsed);
+        virtual void move(float elapsed);
         void setMovementKeys(sf::Keyboard::Key up, sf::Keyboard::Key left, sf::Keyboard::Key down,
                              sf::Keyboard::Key right);
         void setMoveSpeed(float move_speed);
@@ -263,7 +267,7 @@ namespace td {
 
         // Enemy interaction
         bool isTouchingEnemy();
-        std::vector<td::Enemy> getTouchingEnemies();
+        std::vector<td::Enemy*> getTouchingEnemies();
 
         // Item interaction
         bool isTouchingItem();
@@ -286,11 +290,20 @@ namespace td {
 
     class Enemy : public Player {
     private:
+        // Harm
         int harm;
+
+        // Movement
+        std::vector<sf::Vector2f> waypoints;
+        int move_option{};
+        unsigned int current_waypoint_index;
     public:
         // Constructor/destructor
         Enemy();
+        Enemy(const td::Map& map, int width, int height, sf::Color color, int harm = 1);
         ~Enemy();
+
+        void reset();
 
         // Map
         void setMap(td::Map& m) override;
@@ -298,6 +311,17 @@ namespace td {
         // Harm
         int getHarm() const;
         void setHarm(int health_points);
+
+        // Movement
+        enum MoveOptions {
+            LOOP = 1,
+            BACK_AND_FORTH = 2
+        };
+        void setWaypoints(const std::vector<sf::Vector2f>& enemy_waypoints, bool tiles = true);
+        void setMoveOption(int enemy_move_option);
+        void setStartPosition(float start_x, float start_y) override;
+        void setStartTile(int row, int col) override;
+        void move(float elapsed) override;
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -308,6 +332,8 @@ namespace td {
         Item();
         Item(int width, int height, sf::Color color);
         ~Item();
+
+        void reset();
 
         // Render
         void draw(sf::RenderTarget* target) const override;

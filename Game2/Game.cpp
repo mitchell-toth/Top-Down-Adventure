@@ -13,10 +13,15 @@ Game::Game() {
 // Destructor
 Game::~Game() {
     delete this->window;
-    // Release each map's item references
+    // Release each map's enemy and item references
     for (auto map : this->maps) {
+        // Enemies
+        for (auto enemy : *map.getEnemies()) {
+            delete enemy;
+        }
+        // Items
         for (auto item : *map.getItems()) {
-            delete &item;
+            delete item;
         }
     }
 }
@@ -75,7 +80,7 @@ void Game::initWindow() {
 // Initialize game map
 void Game::initMaps() {
     this->tile_size = 8;  // Tile size
-    this->map_index = 0;  // Default is first map
+    this->map_index = 1;  // Default is first map
     // Set up all the maps, complete with enemies and sprite sheets
     this->maps = Maps::initMaps(this->tile_size);
     // Set the current map to be the first one
@@ -112,18 +117,19 @@ void Game::update() {
         this->player.p.setCheckpoint();
     }
 
-    // Handle enemy collision
+    // Move enemies
+    this->current_map.moveEnemies(this->elapsed);
+
+    // Handle enemy collision. It's important that the enemies have moved before this point
     if (this->player.p.isTouchingEnemy()) {
-        std::vector<td::Enemy> touching_enemies = this->player.p.getTouchingEnemies();
-        for (const auto& enemy: touching_enemies) {
-            this->player.p.loseHealth(enemy.getHarm());
+        for (auto enemy: this->player.p.getTouchingEnemies()) {
+            this->player.p.loseHealth(enemy->getHarm());
         }
     }
 
     // Handle item collision
     if (this->player.p.isTouchingItem()) {
-        std::vector<td::Item*> touching_items = this->player.p.getTouchingItems();
-        for (auto item: touching_items) {
+        for (auto item: this->player.p.getTouchingItems()) {
             this->player.p.obtainItem(item);
         }
     }
@@ -164,10 +170,10 @@ void Game::render() {
     // Render the player
     this->player.p.draw(this->window);
 
-    // Render enemies
-    this->current_map.drawEnemies(this->window);
     // Render items
     this->current_map.drawItems(this->window);
+    // Render enemies
+    this->current_map.drawEnemies(this->window);
 
     // Display what has been rendered
     this->window->display();
@@ -206,7 +212,12 @@ void Game::loadNextMap() {
     }
     // Get the next map
     this->current_map = this->maps[this->map_index];
+
     // Configure player to use the new map
     this->player.p.setMap(this->current_map);
     this->player.p.clearInventory();
+
+    // Reset map items
+    this->current_map.resetEnemies();
+    this->current_map.resetItems();
 }

@@ -18,15 +18,15 @@ std::vector<td::Map> Maps::initMaps(int tile_size) {
     sprite_sheet.addSprite('e', sf::Color(139, 246, 153));
 
     // Enemy config
-    td::Enemy enemy = td::Enemy();
-    enemy.setSize((int)(tile_size*0.4), (int)(tile_size*0.4));
-    enemy.setColor(sf::Color::Blue);
-    enemy.setHarm(100);
+    td::Enemy* enemy;
+    Maps::enemy_width = (int)(tile_size*0.55);
+    Maps::enemy_height = (int)(tile_size*0.55);
+    Maps::enemy_harm = 100;
 
     // Coin config
     td::Item* coin;
-    int coin_width = (int)(tile_size*0.4);
-    int coin_height = (int)(tile_size*0.4);
+    Maps::coin_width = (int)(tile_size*0.4);
+    Maps::coin_height = (int)(tile_size*0.4);
 
     // Initialize the maps object to return
     std::vector<td::Map> maps = std::vector<td::Map>();
@@ -38,15 +38,12 @@ std::vector<td::Map> Maps::initMaps(int tile_size) {
     map1.setSpriteSheet(sprite_sheet);
 
     // Add enemies
-    enemy.setMap(map1);
-    enemy.setStartTile(5, 8); map1.addEnemy(enemy);
-    enemy.setStartTile(6, 8); map1.addEnemy(enemy);
+    Maps::addEnemy(map1, {{5, 8}, {7, 8}, {5, 12}}, 10);
+    // Maps::addEnemy(map1, {{6,8}}, 5);
 
     // Add coins
-    coin = new td::Item(coin_width, coin_height, sf::Color::Yellow);
-    coin->setStartTile(3, 3); map1.addItem(coin);
-    coin = new td::Item(coin_width, coin_height, sf::Color::Yellow);
-    coin->setStartTile(5, 5); map1.addItem(coin);
+    Maps::addCoin(map1, 3, 3);
+    Maps::addCoin(map1, 5, 5);
 
     // Add map
     maps.emplace_back(map1);
@@ -58,13 +55,35 @@ std::vector<td::Map> Maps::initMaps(int tile_size) {
     map2.setSpriteSheet(sprite_sheet);
 
     // Add enemies
-    enemy.setMap(map2);
-    enemy.setStartTile(4, 8); map2.addEnemy(enemy);
-    enemy.setStartTile(7, 8); map2.addEnemy(enemy);
+    int speed = 58;
+    Maps::addEnemy(map2, {{4,13}, {4, 6}}, speed);
+    Maps::addEnemy(map2, {{5,6}, {5, 13}}, speed);
+    Maps::addEnemy(map2, {{6,13}, {6, 6}}, speed);
+    Maps::addEnemy(map2, {{7,6}, {7, 13}}, speed);
+    Maps::addEnemy(map2, {{8,13}, {8, 6}}, speed);
 
     // Add map
     maps.emplace_back(map2);
     //------------------------------------------------------------------------------------------------------------------
 
     return maps;
+}
+
+
+// Helper to make a new enemy and add it to a map
+void Maps::addEnemy(td::Map& map, const std::vector<sf::Vector2f>& waypoints, int speed, int enemy_move_option,
+                    int width, int height, sf::Color color, int harm) {
+    auto enemy = new td::Enemy(map, width, height, color, harm);
+    enemy->setWaypoints(waypoints);
+    enemy->setMoveSpeed((float)speed);
+    enemy->setMoveOption(enemy_move_option);
+    map.addEnemy(enemy);
+}
+
+
+// Helper to make a new coin and add it to a map
+void Maps::addCoin(td::Map& map, int row, int col, int width, int height, sf::Color color) {
+    auto coin = new td::Item(width, height, color);
+    coin->setStartTile(row, col);
+    map.addItem(coin);
 }
