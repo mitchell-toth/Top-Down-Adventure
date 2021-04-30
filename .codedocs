@@ -24,7 +24,7 @@ DOXYFILE =
 #   TAGLINKS = doxygen/doxygen CodeDocs/osg
 # Note: these repositories must already be built on CodeDocs.
 
-TAGLINKS =
+TAGLINKS = mitchell-toth/Top-Down-Adventure
 
 #---------------------------------------------------------------------------
 # Doxygen Configuration
@@ -131,7 +131,7 @@ TAGLINKS =
 # INLINE_INHERITED_MEMB =
 # INLINE_SIMPLE_STRUCTS =
 # INLINE_SOURCES =
-INPUT = TDAHelper Game2 Game1
+INPUT = /TDAHelper /Game2 /Game1
 # INPUT_ENCODING =
 # INTERACTIVE_SVG =
 # INTERNAL_DOCS =
