@@ -82,14 +82,29 @@ sf::VertexArray td::Shapes::line(int x1, int y1, int x2, int y2, sf::Color color
 // Constructor
 td::SpriteSheet::SpriteSheet() = default;
 // Destructor
-td::SpriteSheet::~SpriteSheet() = default;
+td::SpriteSheet::~SpriteSheet() {
+    for (auto const& key_val : this->mapping) {
+        delete key_val.second.getTexture();
+    }
+}
 
 // Add a sprite to the sprite sheet
 // Creates a sprite with the given texture and maps it to the given ID
 void td::SpriteSheet::addSprite(char id, sf::Color color) {
-    sf::Sprite sprite = sf::Sprite();
-    sprite.setColor(color);
-    this->mapping[id] = sprite;
+    sf::RectangleShape rect = sf::RectangleShape();
+    rect.setFillColor(color);
+    this->mapping[id] = rect;
+}
+
+// Add a sprite texture
+void td::SpriteSheet::addTexture(char id, const std::string& file) {
+    auto* texture = new sf::Texture();
+    if (!texture->loadFromFile(file)) {
+        throw std::invalid_argument("Could not load texture at path " + file);
+    }
+    sf::RectangleShape rect;
+    rect.setTexture(texture);
+    this->mapping[id] = rect;
 }
 //------------------------------------------------------------------------------------------------------------------
 
@@ -120,9 +135,14 @@ sf::RectangleShape td::Tile::getSprite(td::SpriteSheet& sprite_sheet, int tile_s
     // If the tile's sprite ID is mapped to a sprite, draw it
     // Otherwise, skip this tile and draw nothing (a transparent rect)
     if (td::Util::keyInMap(sprite_sheet.mapping, this->sprite_id)) {
-        sf::Sprite sprite = sprite_sheet.mapping[this->sprite_id];
-        t.setFillColor(sprite.getColor());
-        return t;
+        sf::RectangleShape sprite = sprite_sheet.mapping[this->sprite_id];
+        if(sprite.getTexture() == 0) {
+            t.setFillColor(sprite.getFillColor());
+            return t;
+        } else {
+            t.setTexture(sprite.getTexture());
+            return t;
+        }
     }
     t.setFillColor(sf::Color::Transparent);
     return t;
@@ -195,7 +215,7 @@ void td::Map::readMap(const std::string &path) {
             // Check if this is a starting tile. If so, mark it. Only one start tile allowed
             if (td::Util::find(this->getTileType(td::Map::TileTypes::START), type_id) != -1) {
                 if (start_tile_set) {
-                    throw std::invalid_argument("Error: Multiple starting positions given. Only one allowed.");
+                    throw std::invalid_argument("Multiple starting positions given. Only one allowed.");
                 }
                 this->player_start_row = r;
                 this->player_start_col = (int)c/2;
@@ -287,7 +307,7 @@ void td::Map::setSpriteSheet(const td::SpriteSheet& sheet) {
 // Set the size of the map tiles, in pixels
 void td::Map::setTileSize(int size) {
     if (size < 0 || size > this->max_allowed_tile_size) {
-        throw std::invalid_argument("Invalid tile size!");
+        throw std::invalid_argument("Invalid tile size.");
     }
     this->tile_size = size;
 }
@@ -381,8 +401,14 @@ td::RenderObject::RenderObject() {
 
     // Color
     this->color = sf::Color::White;
+    this->texture = nullptr;
+
+    // Render
+    this->drawable = td::Shapes::rect(this->x, this->y,this->width, this->height);
 }
-td::RenderObject::~RenderObject()=default;
+td::RenderObject::~RenderObject() {
+    delete this->texture;
+}
 
 // Set the map that the player will roam around
 void td::RenderObject::setMap(td::Map &m) {
@@ -410,15 +436,26 @@ void td::RenderObject::setStartTile(int row, int col) {
 }
 
 // Draw the player
-void td::RenderObject::draw(sf::RenderTarget* target) const {
-    sf::RectangleShape rect = td::Shapes::rect(this->x, this->y,this->width, this->height);
-    rect.setFillColor(this->color);
-    target->draw(rect);
+void td::RenderObject::draw(sf::RenderTarget* target) {
+    this->drawable.setPosition(sf::Vector2f(this->x, this->y));
+    this->drawable.setSize(sf::Vector2f(this->width, this->height));
+    target->draw(this->drawable);
 }
 
 // Set the player's color
 void td::RenderObject::setColor(sf::Color c) {
     this->color = c;
+    this->drawable.setFillColor(c);
+}
+
+// Set the player's sprite texture
+void td::RenderObject::setTexture(const std::string& file) {
+    auto* player_texture = new sf::Texture();
+    if (!player_texture->loadFromFile(file)) {
+        throw std::invalid_argument("Could not load texture at path " + file);
+    }
+    this->texture = player_texture;
+    this->drawable.setTexture(player_texture);
 }
 
 // Get the player's width and height
@@ -435,8 +472,6 @@ void td::RenderObject::setSize(int w, int h, bool center_in_tile) {
         this->y += ((float)(this->map.getTileSize()-this->height)/2);
     }
 }
-
-
 //------------------------------------------------------------------------------------------------------------------
 
 
@@ -476,13 +511,6 @@ void td::Player::setMap(td::Map &m) {
     this->map = m;
     this->checkpoint = m.getPlayerStartTile();
     this->spawn();
-}
-
-// Draw the player
-void td::Player::draw(sf::RenderTarget* target) const {
-    sf::RectangleShape rect = td::Shapes::rect(this->x, this->y,this->width, this->height);
-    rect.setFillColor(this->color);
-    target->draw(rect);
 }
 
 // Listen for player movement
@@ -853,11 +881,11 @@ void td::Item::reset() {
 }
 
 // Render the item, but don't render it if it has been obtained already
-void td::Item::draw(sf::RenderTarget* target) const {
+void td::Item::draw(sf::RenderTarget* target) {
     if (!this->obtained) {
-        sf::RectangleShape rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
-        rect.setFillColor(this->color);
-        target->draw(rect);
+        this->drawable.setPosition(sf::Vector2f(this->x, this->y));
+        this->drawable.setSize(sf::Vector2f(this->width, this->height));
+        target->draw(this->drawable);
     }
 }
 

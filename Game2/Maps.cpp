@@ -9,6 +9,7 @@ std::vector<td::Map> Maps::initMaps(int tile_size) {
     // Create a sprite sheet and ID mapping to use with the maps
     td::SpriteSheet sprite_sheet = td::SpriteSheet();
     sprite_sheet.addSprite('#', sf::Color::Transparent);
+    //sprite_sheet.addTexture('#', "../assets/textures/wall.png");
     sprite_sheet.addSprite('w', sf::Color::Black);
     sprite_sheet.addSprite('a', sf::Color::Yellow);
     sprite_sheet.addSprite('`', sf::Color::White);
@@ -77,6 +78,7 @@ void Maps::addEnemy(td::Map& map, const std::vector<sf::Vector2f>& waypoints, in
     enemy->setWaypoints(waypoints);
     enemy->setMoveSpeed((float)speed);
     enemy->setMoveOption(enemy_move_option);
+    enemy->setTexture("../assets/textures/enemy.png");
     map.addEnemy(enemy);
 }
 
@@ -85,5 +87,6 @@ void Maps::addEnemy(td::Map& map, const std::vector<sf::Vector2f>& waypoints, in
 void Maps::addCoin(td::Map& map, int row, int col, int width, int height, sf::Color color) {
     auto coin = new td::Item(width, height, color);
     coin->setStartTile(row, col);
+    coin->setTexture("../assets/textures/coin.png");
     map.addItem(coin);
 }

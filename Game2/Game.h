@@ -42,6 +42,7 @@ class Game {
         void initWindow();
         void initMaps();
         void initPlayer();
+        void initSounds();
 
         // Game functions
         void pollEvents();

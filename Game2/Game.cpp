@@ -7,6 +7,7 @@ Game::Game() {
     this->initWindow();
     this->initMaps();
     this->initPlayer();
+    this->initSounds();
 }
 
 
@@ -96,7 +97,17 @@ void Game::initPlayer() {
     this->player.p.setMovementKeys(sf::Keyboard::W,sf::Keyboard::A,
                                    sf::Keyboard::S, sf::Keyboard::D);
     this->player.p.setMoveSpeed(30);
-    this->player.p.setColor(sf::Color::Red);
+    this->player.p.setTexture("../assets/textures/player.png");
+}
+
+
+// Initialize game music and sound effects
+void Game::initSounds() {
+//    sf::Music music;
+//    const std::string file = "../assets/sounds/music.mp3";
+//    if (!music.openFromFile(file))
+//        throw std::invalid_argument("Could not load audio at path " + file);
+//    music.play();
 }
 
 

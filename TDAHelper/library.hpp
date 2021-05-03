@@ -67,8 +67,9 @@ namespace td {
         SpriteSheet();
         ~SpriteSheet();
 
-        std::map<char, sf::Sprite> mapping;
+        std::map<char, sf::RectangleShape> mapping;
         void addSprite(char id, sf::Color color);
+        void addTexture(char id, const std::string& file);
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -188,11 +189,15 @@ namespace td {
         int width;
         int height;
 
-        // Color
+        // Color/texture
         sf::Color color;
+        sf::Texture* texture;
 
         // Map
         td::Map map;
+
+        // Render
+        sf::RectangleShape drawable;
     public:
         RenderObject();
         ~RenderObject();
@@ -206,8 +211,9 @@ namespace td {
         virtual void setStartTile(int row, int col);
 
         // Render
-        virtual void draw(sf::RenderTarget* target) const;
+        virtual void draw(sf::RenderTarget* target);
         void setColor(sf::Color c);
+        void setTexture(const std::string& file);
 
         // Size
         td::Util::size getSize() const;
@@ -231,9 +237,6 @@ namespace td {
         // Movement
         float speed;
 
-        // Appearance
-        sf::Sprite sprite;
-
         // Gameplay
         int health;
         int max_health;
@@ -244,9 +247,6 @@ namespace td {
 
         // Map
         void setMap(td::Map& m) override;
-
-        // Render
-        void draw(sf::RenderTarget* target) const override;
 
         // Movement
         virtual void move(float elapsed);
@@ -336,7 +336,7 @@ namespace td {
         void reset();
 
         // Render
-        void draw(sf::RenderTarget* target) const override;
+        void draw(sf::RenderTarget* target) override;
 
         // Obtained status
         bool isObtained() const;
