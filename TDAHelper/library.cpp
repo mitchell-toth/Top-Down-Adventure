@@ -54,6 +54,46 @@ void td::Text::print(sf::RenderTarget* target, const std::string &s, const td::T
 //------------------------------------------------------------------------------------------------------------------
 
 
+/* Music */
+
+// Constructor/destructor
+td::Music::Music() = default;
+td::Music::Music(const std::string &path, bool loop, float volume, float pitch) {
+    if (!this->music.openFromFile(path))
+        throw std::invalid_argument("Could not load audio at path " + path);
+    this->music.setLoop(loop);
+    this->music.setVolume(volume);
+    this->music.setPitch(pitch);
+}
+td::Music::~Music() = default;
+
+// Play the sound effect
+void td::Music::play() {
+    this->music.play();
+}
+//------------------------------------------------------------------------------------------------------------------
+
+
+/* Sound */
+
+// Constructor/destructor
+td::Sound::Sound() = default;
+td::Sound::Sound(const std::string &path, float volume, float pitch) {
+    if (!this->buffer.loadFromFile(path))
+        throw std::invalid_argument("Could not load audio at path " + path);
+    this->sound.setBuffer(this->buffer);
+    this->sound.setVolume(volume);
+    this->sound.setPitch(pitch);
+}
+td::Sound::~Sound() = default;
+
+// Play the sound effect
+void td::Sound::play() {
+    this->sound.play();
+}
+//------------------------------------------------------------------------------------------------------------------
+
+
 /* Shapes */
 
 // Construct and return a rectangle
@@ -136,7 +176,7 @@ sf::RectangleShape td::Tile::getSprite(td::SpriteSheet& sprite_sheet, int tile_s
     // Otherwise, skip this tile and draw nothing (a transparent rect)
     if (td::Util::keyInMap(sprite_sheet.mapping, this->sprite_id)) {
         sf::RectangleShape sprite = sprite_sheet.mapping[this->sprite_id];
-        if(sprite.getTexture() == 0) {
+        if(sprite.getTexture() == nullptr) {
             t.setFillColor(sprite.getFillColor());
             return t;
         } else {

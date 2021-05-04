@@ -53,12 +53,38 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    class Music {
+    public:
+        // Constructor/destructor
+        Music();
+        explicit Music(const std::string& path, bool loop=true, float volume=100.f, float pitch=1.f);
+        ~Music();
+
+        sf::Music music;
+
+        void play();
+    };
+    //------------------------------------------------------------------------------------------------------------------
+
+    class Sound {
+    public:
+        // Constructor/destructor
+        Sound();
+        explicit Sound(const std::string& path, float volume=100.f, float pitch=1.f);
+        ~Sound();
+
+        sf::SoundBuffer buffer;
+        sf::Sound sound;
+
+        void play();
+    };
+    //------------------------------------------------------------------------------------------------------------------
+
     class Shapes {
     public:
         static sf::RectangleShape rect(float x, float y, int width, int height, sf::Color color = sf::Color::White);
         static sf::VertexArray line(int x1, int y1, int x2, int y2, sf::Color color = sf::Color::White);
     };
-
     //------------------------------------------------------------------------------------------------------------------
 
     class SpriteSheet {

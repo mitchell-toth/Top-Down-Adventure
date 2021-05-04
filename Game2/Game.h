@@ -32,6 +32,13 @@ class Game {
         // Fonts/text
         sf::Font font;
 
+        // Music
+        td::Music* music{};
+
+        // Sounds effects
+        td::Sound* hitEnemy{};
+        td::Sound* mapTitleScreen{};
+
         // Gameplay
         bool respawnPlayer{};
 

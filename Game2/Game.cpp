@@ -25,6 +25,10 @@ Game::~Game() {
             delete item;
         }
     }
+    // Sounds
+    delete this->music;
+    delete this->hitEnemy;
+    delete this->mapTitleScreen;
 }
 
 
@@ -103,11 +107,13 @@ void Game::initPlayer() {
 
 // Initialize game music and sound effects
 void Game::initSounds() {
-//    sf::Music music;
-//    const std::string file = "../assets/sounds/music.mp3";
-//    if (!music.openFromFile(file))
-//        throw std::invalid_argument("Could not load audio at path " + file);
-//    music.play();
+    // Game music
+    this->music = new td::Music("../assets/sounds/music.wav");
+    this->music->play();
+
+    // Sounds effects
+    this->hitEnemy = new td::Sound("../assets/sounds/enemy-hit.wav");
+    this->mapTitleScreen = new td::Sound("../assets/sounds/map-title-screen.wav");
 }
 
 
@@ -147,6 +153,7 @@ void Game::update() {
 
     // Respawn if player is dead
     if (this->player.p.isDead()) {
+        this->hitEnemy->play();
         this->pauseRespawn();
     }
 
@@ -154,6 +161,7 @@ void Game::update() {
     if (this->player.p.onEnd()) {
         // Don't advance to the next map if the player hasn't collected all the map's coins
         if (this->player.p.getInventory().size() == this->current_map.getItems()->size()) {
+            this->mapTitleScreen->play();
             this->loadNextMap();
         }
     }
