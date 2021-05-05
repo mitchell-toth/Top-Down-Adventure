@@ -15,6 +15,16 @@ class Game {
         int fps{};
         int pause{};
 
+        // State
+        enum State {
+            INTRO_SCREEN = 1,
+            MAIN_MENU = 2,
+            LEVEL_SELECT = 3,
+            MAP_TITLE_SCREEN = 4,
+            PLAYING = 5
+        };
+        State state{};
+
         // Map
         td::Map current_map;
         std::vector<td::Map> maps;
@@ -29,7 +39,8 @@ class Game {
         Player player;
 
         // Fonts/text
-        sf::Font font;
+        sf::Font regFont;
+        sf::Font capsFont;
 
         // Music
         td::Music* music{};
@@ -57,6 +68,9 @@ class Game {
         // Gameplay
         void pauseRespawn();
         void loadNextMap();
+
+        // Intro and title screen helpers
+        void drawIntroScreen1();
 
     public:
         // Constructor/destructor

@@ -54,12 +54,15 @@ void Game::initVariables() {
     this->respawnPlayer = false;
     this->elapsed = 0;
     this->numDeaths = 0;
+
+    this->state = State::INTRO_SCREEN;
 }
 
 
 // Initialize game fonts
 void Game::initFonts() {
-    this->font.loadFromFile("../assets/fonts/impact.ttf");
+    this->regFont.loadFromFile("../assets/fonts/Aller_Rg.ttf");
+    this->capsFont.loadFromFile("../assets/fonts/OstrichSans-Heavy.otf");
 }
 
 
@@ -122,6 +125,9 @@ void Game::initSounds() {
 void Game::update() {
     this->pollEvents();  // Poll for game loop events
 
+    // If not playing the game, don't bother handling game logic
+    if (this->state != State::PLAYING) return;
+
     // Respawn the player after a pause
     if (this->respawnPlayer) {
         this->respawnPlayer = false;
@@ -175,6 +181,20 @@ void Game::render() {
     // Update the pause variable
     if (this->paused()) this->pause--;
 
+    switch (this->state) {
+        case State::INTRO_SCREEN:
+            this->drawIntroScreen1();
+            return;
+        case MAIN_MENU:
+            return;
+        case State::LEVEL_SELECT:
+            return;
+        case MAP_TITLE_SCREEN:
+            return;
+        default:
+            break;
+    }
+
     // Clear previous frame renders
     this->window->clear(this->background_color);
 
@@ -190,9 +210,15 @@ void Game::render() {
 
     // Draw the HUD
     std::stringstream ss;
+    // Print the current level number
+    ss << "LEVEL: " << this->map_index+1;
+    td::Text::print(this->window, ss.str(),
+                    {.font=this->capsFont, .x=(int)(this->current_map.getMapSize().x * 0.03), .y=-5, .size=60, .align=td::Text::Align::LEFT});
+    // Print the number of fails
+    ss.str(std::string());
     ss << "FAILS: " << this->numDeaths;
     td::Text::print(this->window, ss.str(),
-                    {.font=this->font, .x=(int)(this->current_map.getMapSize().x * 0.95), .y=5, .size=50, .align=td::Text::Align::RIGHT});
+                    {.font=this->capsFont, .x=(int)(this->current_map.getMapSize().x * 0.95), .y=-5, .size=60, .align=td::Text::Align::RIGHT});
 
     // Render the player
     this->player.p.draw(this->window);
@@ -247,4 +273,17 @@ void Game::loadNextMap() {
     // Reset map items
     this->current_map.resetEnemies();
     this->current_map.resetItems();
+}
+
+
+// Create the first intro screen
+void Game::drawIntroScreen1() {
+    // Clear previous frame renders
+    this->window->clear(sf::Color::Black);
+    td::Text::print(this->window, "Finished Loading!", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 - 60), .size=18, .align=td::Text::Align::RIGHT});
+    td::Text::print(this->window, "This is The World's Hardest Game.", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 + 22), .size=18, .align=td::Text::Align::CENTER});
+    td::Text::print(this->window, "It is harder than any game you have", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 + 44), .size=18, .align=td::Text::Align::CENTER});
+    td::Text::print(this->window, "ever played, or ever will play.", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 + 66), .size=18, .align=td::Text::Align::CENTER});
+
+    this->window->display();
 }
