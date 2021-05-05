@@ -1,5 +1,7 @@
 #include "library.hpp"
 
+#include <utility>
+
 /* Util */
 
 // Helper to locate a value within a std::vector object
@@ -113,6 +115,89 @@ sf::VertexArray td::Shapes::line(int x1, int y1, int x2, int y2, sf::Color color
     l[1].position = sf::Vector2f(x2, y2);
     l[1].color  = sf::Color(color);
     return l;
+}
+//------------------------------------------------------------------------------------------------------------------
+
+
+/* ClickableMenu */
+
+// Constructor/destructor
+td::ClickableMenu::ClickableMenu() {
+    this->x = 0;
+    this->y = 0;
+    this->buttonWidth = 60;
+    this->buttonHeight = 60;
+}
+td::ClickableMenu::ClickableMenu(sf::RenderWindow* target, int start_x, int start_y, int buttonWidth, int buttonHeight,
+                                 std::vector<std::vector<const std::string&>> menuItems,
+                                 const td::Text::Config& textConfig) {
+    this->x = start_x;
+    this->y = start_y;
+    this->buttonWidth = buttonWidth;
+    this->buttonHeight = buttonHeight;
+
+    this->menuItems = std::move(menuItems);
+
+    this->lastMouseoverOption = -1;
+
+    this->menuItemRects = std::vector<sf::RectangleShape>(this->menuItems.size());
+    //Create a vector of colored rectangles to go behind the menu options text
+    for (int i=0; i<this->menuItems.size(); i++) {
+        float rect_x, rect_y;
+        if (this->textConfig.align == td::Text::Align::CENTER) {  // Center horizontally
+            rect_x = (float)((this->target->getSize().x * 0.5) - 210);
+            rect_y = (float)((i * this->buttonHeight) + (this->y - 5));
+        }
+        else {
+            rect_x = (float)(this->x - 210);
+            rect_y = (float)((i * this->buttonHeight) + (y - 5));
+        }
+
+        sf::RectangleShape rect = td::Shapes::rect(rect_x, rect_y, 420, this->buttonHeight);
+        this->menuItemRects[i] = rect;
+    }
+}
+
+td::ClickableMenu::~ClickableMenu()=default;
+
+//Render the menu by printing the text options
+void td::ClickableMenu::drawMenu(sf::RenderTarget* target) {
+    for (int i=0; i<this->menuItems.size(); i++) {
+        // print the button text
+    }
+}
+
+//Check if the mouse is within any of the menu options rectangles. If so, draw the highlighted rectangle
+void td::ClickableMenu::onMouseOver() {
+    int mouse_x = sf::Mouse::getPosition(*this->target).x;  // Get mouse x
+    int mouse_y = sf::Mouse::getPosition(*this->target).y;  // Get mouse y
+
+    //Iterate over each rectangle to check if it contains mouse_x and mouse_y
+    for (int i=0; i<this->menuItems.size(); i++) {
+        if (this->menuItemRects[i].getGlobalBounds().contains(mouse_x, mouse_y)) {
+            this->menuItemRects[i].setFillColor(sf::Color(140, 140, 140, 100));
+            this->target->draw(this->menuItemRects[i]);
+
+            //Play a sound if this is a new menu option hover
+            if (this->lastMouseoverOption != i) {
+                this->lastMouseoverOption = i;
+            }
+        }
+    }
+}
+
+//Check if a mouse click occurred in a menu item. If so, return the corresponding state
+int td::ClickableMenu::onMouseClick() {
+    int mouse_x = sf::Mouse::getPosition(*this->target).x;  // Get mouse x
+    int mouse_y = sf::Mouse::getPosition(*this->target).y;  // Get mouse y
+
+    //Iterate over each rectangle to check if it contains mouse_x and mouse_y
+    for (int i=0; i<this->numMenuItems; i++) {
+        if (this->menuItemRects[i].getGlobalBounds().contains(mouse_x, mouse_y)) {
+            return this->states[i];  // Return state corresponding to selected item
+        }
+    }
+    return currentState;
 }
 //------------------------------------------------------------------------------------------------------------------
 

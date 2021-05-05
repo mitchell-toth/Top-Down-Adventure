@@ -87,6 +87,45 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    class ClickableMenu {
+    private:
+        // Window
+        sf::RenderWindow* target;
+
+        // Options
+        std::vector<std::vector<const std::string&>> menuItems;
+        int lastMouseoverOption;
+
+        // Text
+        td::Text::Config textConfig;
+
+        // Position
+        int x;
+        int y;
+
+        // Styling and highlighting
+        int buttonWidth;
+        int buttonHeight;
+        std::vector<sf::RectangleShape> menuItemRects;
+    public:
+        //Constructor/destructor
+        ClickableMenu();
+        ClickableMenu(sf::RenderWindow* target, int start_x, int start_y, int buttonWidth, int buttonHeight,
+                      std::vector<std::vector<const std::string&>> menuItems,
+                      const td::Text::Config& textConfig);
+        ~ClickableMenu();
+
+        void setRenderWindow(sf::RenderWindow* target);
+
+        // Render
+        void drawMenu(sf::RenderTarget* target);
+        void onMouseOver();
+
+        // Selection
+        int onMouseClick();
+    };
+    //------------------------------------------------------------------------------------------------------------------
+
     class SpriteSheet {
     public:
         // Constructor/destructor

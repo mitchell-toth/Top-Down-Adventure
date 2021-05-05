@@ -56,6 +56,7 @@ void Game::initVariables() {
     this->numDeaths = 0;
 
     this->state = State::INTRO_SCREEN;
+    // this->state = State::PLAYING;
 }
 
 
