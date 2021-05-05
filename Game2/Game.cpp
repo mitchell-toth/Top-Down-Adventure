@@ -27,8 +27,8 @@ Game::~Game() {
     }
     // Sounds
     delete this->music;
-    delete this->hitEnemy;
-    delete this->mapTitleScreen;
+    delete this->hitEnemySound;
+    delete this->mapTitleScreenSound;
 }
 
 
@@ -53,6 +53,7 @@ void Game::initVariables() {
     this->angle = 0;
     this->respawnPlayer = false;
     this->elapsed = 0;
+    this->numDeaths = 0;
 }
 
 
@@ -65,7 +66,7 @@ void Game::initFonts() {
 // Initialize game window
 void Game::initWindow() {
     this->videoMode.width = 1000;
-    this->videoMode.height = 650;
+    this->videoMode.height = 750;
     this->background_color = sf::Color(158, 154, 229);
 
     // Allocate the window
@@ -84,7 +85,7 @@ void Game::initWindow() {
 
 // Initialize game map
 void Game::initMaps() {
-    this->tile_size = 8;  // Tile size
+    this->tile_size = 64;  // Tile size
     this->map_index = 1;  // Default is first map
     // Set up all the maps, complete with enemies and sprite sheets
     this->maps = Maps::initMaps(this->tile_size);
@@ -112,8 +113,8 @@ void Game::initSounds() {
     this->music->play();
 
     // Sounds effects
-    this->hitEnemy = new td::Sound("../assets/sounds/enemy-hit.wav");
-    this->mapTitleScreen = new td::Sound("../assets/sounds/map-title-screen.wav");
+    this->hitEnemySound = new td::Sound("../assets/sounds/enemy-hit.wav");
+    this->mapTitleScreenSound = new td::Sound("../assets/sounds/map-title-screen.wav");
 }
 
 
@@ -153,7 +154,8 @@ void Game::update() {
 
     // Respawn if player is dead
     if (this->player.p.isDead()) {
-        this->hitEnemy->play();
+        this->numDeaths++;
+        this->hitEnemySound->play();
         this->pauseRespawn();
     }
 
@@ -161,7 +163,7 @@ void Game::update() {
     if (this->player.p.onEnd()) {
         // Don't advance to the next map if the player hasn't collected all the map's coins
         if (this->player.p.getInventory().size() == this->current_map.getItems()->size()) {
-            this->mapTitleScreen->play();
+            this->mapTitleScreenSound->play();
             this->loadNextMap();
         }
     }
@@ -180,11 +182,17 @@ void Game::render() {
     this->view.reset(sf::FloatRect(0, 0, this->videoMode.width, this->videoMode.height));
     this->view.rotate(this->angle);
     this->view.setCenter((float)(this->current_map.getMapSize().x)/2,(float)(this->current_map.getMapSize().y)/2);
-    this->view.zoom(0.16);
+    this->view.zoom(1.28);
     this->window->setView(this->view);
 
     // Render the map
     this->current_map.draw(this->window);
+
+    // Draw the HUD
+    std::stringstream ss;
+    ss << "FAILS: " << this->numDeaths;
+    td::Text::print(this->window, ss.str(),
+                    {.font=this->font, .x=(int)(this->current_map.getMapSize().x * 0.95), .y=5, .size=50, .align=td::Text::Align::RIGHT});
 
     // Render the player
     this->player.p.draw(this->window);

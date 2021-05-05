@@ -27,7 +27,6 @@ class Game {
 
         // Gameplay
         Player player;
-        // std::vector<td::Enemy> enemies;
 
         // Fonts/text
         sf::Font font;
@@ -36,11 +35,12 @@ class Game {
         td::Music* music{};
 
         // Sounds effects
-        td::Sound* hitEnemy{};
-        td::Sound* mapTitleScreen{};
+        td::Sound* hitEnemySound{};
+        td::Sound* mapTitleScreenSound{};
 
         // Gameplay
         bool respawnPlayer{};
+        int numDeaths{};
 
         //Functions:
         // Initialization

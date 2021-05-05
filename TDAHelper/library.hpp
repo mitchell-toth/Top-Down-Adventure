@@ -356,7 +356,7 @@ namespace td {
         bool obtained;
     public:
         Item();
-        Item(int width, int height, sf::Color color);
+        Item(const td::Map& map, int width, int height, sf::Color color);
         ~Item();
 
         void reset();
