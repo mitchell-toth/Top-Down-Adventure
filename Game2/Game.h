@@ -25,15 +25,25 @@ class Game {
         };
         State state{};
 
+        // Clickable menus
+        td::ClickableMenu introMenu;
+        td::ClickableMenu titleMenu;
+        td::ClickableMenu hudMenu;
+
         // Map
         td::Map current_map;
         std::vector<td::Map> maps;
+        td::Map titleScreenBackground;
         int map_index{};
+
+        // Title screen text
+        std::vector<std::string> titleScreens;
 
         // Map config
         int tile_size{};
         sf::Color background_color;
         float angle{};
+        float zoom{};
 
         // Gameplay
         Player player;
@@ -59,18 +69,25 @@ class Game {
         void initFonts();
         void initWindow();
         void initMaps();
+        void initView();
         void initPlayer();
         void initSounds();
+        void initMenus();
 
         // Game functions
         void pollEvents();
 
         // Gameplay
         void pauseRespawn();
-        void loadNextMap();
+        void loadMap(int map_idx);
 
         // Intro and title screen helpers
-        void drawIntroScreen1();
+        void drawIntroScreen();
+        void drawMainMenu();
+        void drawMapTitleScreen();
+
+        // HUD
+        void drawHUD();
 
     public:
         // Constructor/destructor

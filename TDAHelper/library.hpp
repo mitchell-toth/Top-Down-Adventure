@@ -49,7 +49,7 @@ namespace td {
             Align align{Align::LEFT};
             sf::Color color{sf::Color::White};
         };
-        static void print(sf::RenderTarget* target, const std::string& s, const Config& config);
+        static void print(sf::RenderTarget* target, const std::string& s, const Config& config, bool relativeToView=true);
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -94,7 +94,6 @@ namespace td {
 
         // Options
         std::vector<std::vector<std::string>> menuItems;
-        int lastMouseoverOption{};
 
         // Text
         td::Text::Config textConfig;
@@ -105,6 +104,7 @@ namespace td {
 
         // Styling
         std::vector<int> padding;
+        std::vector<std::vector<sf::Color>> optionColors;
 
         // Absolute button width and height, optional
         int buttonWidth{};
@@ -112,7 +112,6 @@ namespace td {
 
         // Highlighting rectangles
         std::vector<std::vector<sf::RectangleShape>> menuItemRects;
-        void createOnHoverRectangles();
 
         // Colors
         sf::Color onHoverColor;
@@ -127,6 +126,11 @@ namespace td {
         ~ClickableMenu();
 
         void initVariables();
+        void createOnHoverRectangles();
+
+        // Getters
+        std::vector<std::vector<std::string>> getMenuItems();
+        sf::Vector2f getPosition();
 
         // Setters
         void setRenderWindow(sf::RenderWindow* rw);
@@ -135,6 +139,7 @@ namespace td {
         void setMenuItems(const std::vector<std::vector<std::string>>& items);
         void setTextConfig(const td::Text::Config& config);
         void setButtonSize(int width, int height);
+        void setOptionColors(const std::vector<std::vector<sf::Color>>& colors);
 
         // Colors
         void setOnHoverColor(sf::Color color);
@@ -145,7 +150,7 @@ namespace td {
         void onMouseOver();
 
         // Selection
-        int onMouseClick();
+        std::string onMouseClick();
     };
     //------------------------------------------------------------------------------------------------------------------
 

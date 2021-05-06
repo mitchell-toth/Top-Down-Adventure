@@ -10,6 +10,7 @@ namespace Maps {
     static int coin_width;
     static int coin_height;
     std::vector<td::Map> initMaps(int tile_size);
+    std::vector<std::string> initTitleScreens();
     void addEnemy(td::Map& map, const std::vector<sf::Vector2f>& waypoints,
                   int speed = 50, int enemy_move_option = td::Enemy::MoveOptions::LOOP,
                   int width = Maps::enemy_width, int height = Maps::enemy_height,

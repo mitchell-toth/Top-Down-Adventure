@@ -6,8 +6,10 @@ Game::Game() {
     this->initFonts();
     this->initWindow();
     this->initMaps();
+    this->initView();
     this->initPlayer();
     this->initSounds();
+    this->initMenus();
 }
 
 
@@ -51,12 +53,12 @@ void Game::initVariables() {
     this->pause = 0;
     this->view = sf::View();
     this->angle = 0;
+    this->zoom = 1.28;
     this->respawnPlayer = false;
     this->elapsed = 0;
     this->numDeaths = 0;
 
     this->state = State::INTRO_SCREEN;
-    // this->state = State::PLAYING;
 }
 
 
@@ -90,11 +92,45 @@ void Game::initWindow() {
 // Initialize game map
 void Game::initMaps() {
     this->tile_size = 64;  // Tile size
-    this->map_index = 1;  // Default is first map
+    this->map_index = 0;   // Default is first map
+
+    // Set up the base title screen "map"
+    td::SpriteSheet title_sprite_sheet = td::SpriteSheet();
+    title_sprite_sheet.addSprite('H', sf::Color::Black);
+    title_sprite_sheet.addSprite('a', sf::Color(231, 231, 231));
+    title_sprite_sheet.addSprite('b', sf::Color(233, 233, 233));
+    title_sprite_sheet.addSprite('c', sf::Color(235, 235, 235));
+    title_sprite_sheet.addSprite('d', sf::Color(237, 237, 237));
+    title_sprite_sheet.addSprite('e', sf::Color(239, 239, 239));
+    title_sprite_sheet.addSprite('f', sf::Color(241, 241, 241));
+    title_sprite_sheet.addSprite('g', sf::Color(243, 243, 243));
+    title_sprite_sheet.addSprite('h', sf::Color(245, 245, 245));
+    title_sprite_sheet.addSprite('i', sf::Color(247, 247, 247));
+    title_sprite_sheet.addSprite('j', sf::Color(249, 249, 249));
+    title_sprite_sheet.addSprite('k', sf::Color(251, 251, 251));
+    title_sprite_sheet.addSprite('l', sf::Color(253, 253, 253));
+    title_sprite_sheet.addSprite('m', sf::Color(255, 255, 255));
+
+    this->titleScreenBackground = td::Map("../assets/maps/title.txt");
+    this->titleScreenBackground.setTileSize(this->tile_size);
+    this->titleScreenBackground.setSpriteSheet(title_sprite_sheet);
+
     // Set up all the maps, complete with enemies and sprite sheets
     this->maps = Maps::initMaps(this->tile_size);
+    // Set up the map title screens
+    this->titleScreens = Maps::initTitleScreens();
     // Set the current map to be the first one
     this->current_map = this->maps[this->map_index];
+}
+
+
+// Initialize the camera view
+void Game::initView() {
+    this->view.reset(sf::FloatRect(0, 0, this->videoMode.width, this->videoMode.height));
+    this->view.rotate(this->angle);
+    this->view.setCenter((float)(this->current_map.getMapSize().x)/2,(float)(this->current_map.getMapSize().y)/2);
+    this->view.zoom(this->zoom);
+    this->window->setView(this->view);
 }
 
 
@@ -114,11 +150,32 @@ void Game::initPlayer() {
 void Game::initSounds() {
     // Game music
     this->music = new td::Music("../assets/sounds/music.wav");
-    this->music->play();
 
     // Sounds effects
     this->hitEnemySound = new td::Sound("../assets/sounds/enemy-hit.wav");
     this->mapTitleScreenSound = new td::Sound("../assets/sounds/map-title-screen.wav");
+}
+
+
+void Game::initMenus() {
+    // Intro menu on game load
+    // One clickable button for "PLAY GAME"
+    this->introMenu = td::ClickableMenu(this->window, (float)this->window->getSize().x/2 - 30, (float)this->window->getSize().y/2 - 30,
+                                               {10, 85, 10, 85},{{"PLAY GAME"}},
+                                               {.font=this->capsFont, .size=50, .align=td::Text::Align::CENTER});
+    this->introMenu.setOutline(sf::Color::White, 1);
+
+    // Main menu
+    // Options for "PLAY GAME" and "LEVEL SELECT"
+    this->titleMenu = td::ClickableMenu(this->window, (float)this->window->getSize().x/2 - 220, (float)this->window->getSize().y/2 + 20,
+                                        {20, 85, 20, 85},{{"PLAY\nGAME", "LEVEL\nSELECT"}},
+                                        {.font=this->capsFont, .size=100, .align=td::Text::Align::CENTER, .color=sf::Color::Black});
+    this->titleMenu.setOptionColors({{sf::Color::Red, sf::Color::Green}});
+
+    // HUD menu
+    // One option for "MENU" to go back to the main menu
+    this->hudMenu = td::ClickableMenu(this->window, (float)(this->window->getSize().x * 0.01), (float)(this->window->getSize().y * 0.93),
+                                        {10},{{"MENU"}},{.font=this->capsFont, .size=60});
 }
 
 
@@ -170,8 +227,12 @@ void Game::update() {
     if (this->player.p.onEnd()) {
         // Don't advance to the next map if the player hasn't collected all the map's coins
         if (this->player.p.getInventory().size() == this->current_map.getItems()->size()) {
-            this->mapTitleScreenSound->play();
-            this->loadNextMap();
+            this->map_index++;
+            if (this->map_index >= this->maps.size()) {
+                //TODO: win screen?
+                this->map_index = 0;  // Loop back around to the first map
+            }
+            this->loadMap(this->map_index);
         }
     }
 }
@@ -182,20 +243,6 @@ void Game::render() {
     // Update the pause variable
     if (this->paused()) this->pause--;
 
-    switch (this->state) {
-        case State::INTRO_SCREEN:
-            this->drawIntroScreen1();
-            return;
-        case MAIN_MENU:
-            return;
-        case State::LEVEL_SELECT:
-            return;
-        case MAP_TITLE_SCREEN:
-            return;
-        default:
-            break;
-    }
-
     // Clear previous frame renders
     this->window->clear(this->background_color);
 
@@ -203,23 +250,28 @@ void Game::render() {
     this->view.reset(sf::FloatRect(0, 0, this->videoMode.width, this->videoMode.height));
     this->view.rotate(this->angle);
     this->view.setCenter((float)(this->current_map.getMapSize().x)/2,(float)(this->current_map.getMapSize().y)/2);
-    this->view.zoom(1.28);
+    this->view.zoom(this->zoom);
     this->window->setView(this->view);
+
+    // Handle state and corresponding title screens
+    switch (this->state) {
+        case State::INTRO_SCREEN:
+            this->drawIntroScreen(); return;
+        case MAIN_MENU:
+            this->drawMainMenu(); return;
+        case State::LEVEL_SELECT:
+            return;
+        case MAP_TITLE_SCREEN:
+            this->drawMapTitleScreen(); return;
+        default:
+            break;
+    }
 
     // Render the map
     this->current_map.draw(this->window);
 
     // Draw the HUD
-    std::stringstream ss;
-    // Print the current level number
-    ss << "LEVEL: " << this->map_index+1;
-    td::Text::print(this->window, ss.str(),
-                    {.font=this->capsFont, .x=(int)(this->current_map.getMapSize().x * 0.03), .y=-5, .size=60, .align=td::Text::Align::LEFT});
-    // Print the number of fails
-    ss.str(std::string());
-    ss << "FAILS: " << this->numDeaths;
-    td::Text::print(this->window, ss.str(),
-                    {.font=this->capsFont, .x=(int)(this->current_map.getMapSize().x * 0.95), .y=-5, .size=60, .align=td::Text::Align::RIGHT});
+    this->drawHUD();
 
     // Render the player
     this->player.p.draw(this->window);
@@ -246,6 +298,30 @@ void Game::pollEvents() {
                     this->window->close();
                 }
                 break;
+            case sf::Event::MouseButtonReleased:    // Watch for mouse clicks
+                // If on the intro loading screen...
+                if (this->state == State::INTRO_SCREEN) {
+                    if (this->introMenu.onMouseClick() == "PLAY GAME") {
+                        this->state = State::MAIN_MENU;
+                        this->music->play();
+                    }
+                }
+                // If in the main menu...
+                else if (this->state == State::MAIN_MENU) {
+                    if (this->titleMenu.onMouseClick() == "PLAY\nGAME") {
+                        this->state = State::PLAYING;
+                        this->loadMap(this->map_index);
+                    }
+                    else if (this->titleMenu.onMouseClick() == "LEVEL\nSELECT") {
+                        this->state = State::LEVEL_SELECT;
+                    }
+                }
+                // If playing the game...
+                else if (this->state == State::PLAYING) {
+                    if (this->hudMenu.onMouseClick() == "MENU") {
+                        this->state = State::MAIN_MENU;
+                    }
+                }
         }
     }
 }
@@ -259,13 +335,11 @@ void Game::pauseRespawn() {
 
 
 // Load the next map and place the player on it
-void Game::loadNextMap() {
-    this->map_index++;
-    if (this->map_index >= this->maps.size()) {
-        this->map_index = 0;  // Loop back around to the first map
-    }
+void Game::loadMap(int map_idx) {
+    this->mapTitleScreenSound->play();
+
     // Get the next map
-    this->current_map = this->maps[this->map_index];
+    this->current_map = this->maps[map_idx];
 
     // Configure player to use the new map
     this->player.p.setMap(this->current_map);
@@ -274,28 +348,98 @@ void Game::loadNextMap() {
     // Reset map items
     this->current_map.resetEnemies();
     this->current_map.resetItems();
+
+    // Display the map's title screen
+    this->state = State::MAP_TITLE_SCREEN;
+    this->pause = 110;
 }
 
 
-// Create the first intro screen
-void Game::drawIntroScreen1() {
+// Render the initial game load screen
+// Drawn when state is INTRO_SCREEN
+void Game::drawIntroScreen() {
     // Clear previous frame renders
     this->window->clear(sf::Color::Black);
 
-    // Create a menu with one clickable button for "PLAY GAME"
-    td::ClickableMenu menu = td::ClickableMenu(this->window, 0, (float)this->window->getSize().y/2 - 28,
-                                               {10, 85, 10, 85},{{"PLAY GAME"}},
-                                               {.font=this->capsFont, .size=32, .align=td::Text::Align::CENTER});
-    menu.setOutline(sf::Color::White, 1);
-    menu.drawMenu();
-    menu.onMouseOver();
+    this->introMenu.drawMenu();
+    this->introMenu.onMouseOver();
 
     // Print text
-    td::Text::print(this->window, "Finished Loading!", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 - 60), .size=18, .align=td::Text::Align::RIGHT});
-    td::Text::print(this->window, "This is The World's Hardest Game.", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 + 22), .size=18, .align=td::Text::Align::CENTER});
-    td::Text::print(this->window, "It is harder than any game you have", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 + 44), .size=18, .align=td::Text::Align::CENTER});
-    td::Text::print(this->window, "ever played, or ever will play.", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 + 66), .size=18, .align=td::Text::Align::CENTER});
+    td::Text::print(this->window, "Finished Loading!", {.font=this->regFont, .x=(int)(this->window->getSize().x/2 - 130), .y=(int)(this->window->getSize().y/2 - 60), .size=22});
+    td::Text::print(this->window, "This is The World's Hardest Game.", {.font=this->regFont, .y=(int)(this->window->getSize().y/2 + 22), .size=22, .align=td::Text::Align::CENTER});
+    td::Text::print(this->window, "It is harder than any game you have", {.font=this->regFont, .y=(int)(this->window->getSize().y/2 + 44), .size=22, .align=td::Text::Align::CENTER});
+    td::Text::print(this->window, "ever played, or ever will play.", {.font=this->regFont, .y=(int)(this->window->getSize().y/2 + 66), .size=22, .align=td::Text::Align::CENTER});
 
     // Display the rendered objects
     this->window->display();
+}
+
+
+// Render the game's main menu
+// Drawn when state is MAIN_MENU
+void Game::drawMainMenu() {
+    // Clear previous frame renders
+    this->window->clear(sf::Color::White);
+
+    this->titleScreenBackground.draw(this->window);
+
+    this->titleMenu.drawMenu();
+    this->titleMenu.onMouseOver();
+
+    td::Text::print(this->window, "THE WORLD'S", {.font=this->capsFont, .x=115, .y=140, .size=40, .color=sf::Color::Black});
+    td::Text::print(this->window, "HARDEST GAME", {.font=this->capsFont, .y=125, .size=220, .align=td::Text::Align::CENTER, .color=sf::Color(70, 134, 188)});
+
+    td::Text::print(this->window, "MITCHELL TOTH",
+                    {.font=this->capsFont, .x=(int)(this->window->getSize().x * 0.02), .y=-5, .size=60, .align=td::Text::Align::LEFT});
+
+    td::Text::print(this->window, "MUSIC: SNAYK",
+                    {.font=this->capsFont, .x=(int)(this->window->getSize().x * 0.98), .y=-5, .size=60, .align=td::Text::Align::RIGHT});
+
+    // Display the rendered objects
+    this->window->display();
+}
+
+
+// Show the title screen that corresponds to the current map
+// Drawn when state is MAP_TITLE_SCREEN
+void Game::drawMapTitleScreen() {
+    if (!this->paused())
+        this->state = State::PLAYING;
+
+    this->window->clear(sf::Color::White);
+    this->titleScreenBackground.draw(this->window);
+
+    std::string s = titleScreens[this->map_index];
+
+    int y = (int)(this->window->getSize().y/2) - 160;
+    int next = 0;
+    int last = 0;
+    while ((next = s.find('\n', last)) != std::string::npos) {
+        td::Text::print(this->window, s.substr(last, next-last), {.font=this->capsFont, .y=y, .size=130, .align=td::Text::Align::CENTER, .color=sf::Color::Black});
+        last = next + 1;
+        y += 100;
+    }
+    td::Text::print(this->window, s.substr(last), {.font=this->capsFont, .y=y, .size=130, .align=td::Text::Align::CENTER, .color=sf::Color::Black});
+    this->window->display();
+}
+
+
+// Render the level text, number of fails, and a button to go back to the Main Menu
+// Drawn when state is PLAYING
+void Game::drawHUD() {
+    std::stringstream ss;
+    // Print the current level number
+    ss << "LEVEL: " << this->map_index+1;
+    td::Text::print(this->window, ss.str(),
+                    {.font=this->capsFont, .x=(int)(this->window->getSize().x * 0.02), .y=-5, .size=60, .align=td::Text::Align::LEFT});
+
+    // Print the number of fails
+    ss.str(std::string());
+    ss << "FAILS: " << this->numDeaths;
+    td::Text::print(this->window, ss.str(),
+                    {.font=this->capsFont, .x=(int)(this->window->getSize().x * 0.98), .y=-5, .size=60, .align=td::Text::Align::RIGHT});
+
+    // Draw the "MENU" button
+    this->hudMenu.drawMenu();
+    this->hudMenu.onMouseOver();
 }
