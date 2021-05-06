@@ -90,35 +90,58 @@ namespace td {
     class ClickableMenu {
     private:
         // Window
-        sf::RenderWindow* target;
+        sf::RenderWindow* target{};
 
         // Options
-        std::vector<std::vector<const std::string&>> menuItems;
-        int lastMouseoverOption;
+        std::vector<std::vector<std::string>> menuItems;
+        int lastMouseoverOption{};
 
         // Text
         td::Text::Config textConfig;
 
         // Position
-        int x;
-        int y;
+        float x{};
+        float y{};
 
-        // Styling and highlighting
-        int buttonWidth;
-        int buttonHeight;
-        std::vector<sf::RectangleShape> menuItemRects;
+        // Styling
+        std::vector<int> padding;
+
+        // Absolute button width and height, optional
+        int buttonWidth{};
+        int buttonHeight{};
+
+        // Highlighting rectangles
+        std::vector<std::vector<sf::RectangleShape>> menuItemRects;
+        void createOnHoverRectangles();
+
+        // Colors
+        sf::Color onHoverColor;
+        sf::Color outlineColor;
+        int outlineThickness{};
     public:
         //Constructor/destructor
         ClickableMenu();
-        ClickableMenu(sf::RenderWindow* target, int start_x, int start_y, int buttonWidth, int buttonHeight,
-                      std::vector<std::vector<const std::string&>> menuItems,
+        ClickableMenu(sf::RenderWindow* target, float start_x, float start_y, const std::vector<int>& padding,
+                      std::vector<std::vector<std::string>> menuItems,
                       const td::Text::Config& textConfig);
         ~ClickableMenu();
 
-        void setRenderWindow(sf::RenderWindow* target);
+        void initVariables();
+
+        // Setters
+        void setRenderWindow(sf::RenderWindow* rw);
+        void setPosition(float start_x, float start_y);
+        void setPadding(const std::vector<int>& p);
+        void setMenuItems(const std::vector<std::vector<std::string>>& items);
+        void setTextConfig(const td::Text::Config& config);
+        void setButtonSize(int width, int height);
+
+        // Colors
+        void setOnHoverColor(sf::Color color);
+        void setOutline(sf::Color color, int thickness);
 
         // Render
-        void drawMenu(sf::RenderTarget* target);
+        void drawMenu();
         void onMouseOver();
 
         // Selection

@@ -281,10 +281,21 @@ void Game::loadNextMap() {
 void Game::drawIntroScreen1() {
     // Clear previous frame renders
     this->window->clear(sf::Color::Black);
+
+    // Create a menu with one clickable button for "PLAY GAME"
+    td::ClickableMenu menu = td::ClickableMenu(this->window, 0, (float)this->window->getSize().y/2 - 28,
+                                               {10, 85, 10, 85},{{"PLAY GAME"}},
+                                               {.font=this->capsFont, .size=32, .align=td::Text::Align::CENTER});
+    menu.setOutline(sf::Color::White, 1);
+    menu.drawMenu();
+    menu.onMouseOver();
+
+    // Print text
     td::Text::print(this->window, "Finished Loading!", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 - 60), .size=18, .align=td::Text::Align::RIGHT});
     td::Text::print(this->window, "This is The World's Hardest Game.", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 + 22), .size=18, .align=td::Text::Align::CENTER});
     td::Text::print(this->window, "It is harder than any game you have", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 + 44), .size=18, .align=td::Text::Align::CENTER});
     td::Text::print(this->window, "ever played, or ever will play.", {.font=this->regFont, .x=(int)(this->window->getSize().x/2), .y=(int)(this->window->getSize().y/2 + 66), .size=18, .align=td::Text::Align::CENTER});
 
+    // Display the rendered objects
     this->window->display();
 }
