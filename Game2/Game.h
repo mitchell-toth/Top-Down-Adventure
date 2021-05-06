@@ -13,7 +13,7 @@ class Game {
         sf::Event ev{};
         sf::View view{};
         int fps{};
-        int pause{};
+        float pause{};
 
         // State
         enum State {
@@ -28,7 +28,9 @@ class Game {
         // Clickable menus
         td::ClickableMenu introMenu;
         td::ClickableMenu titleMenu;
-        td::ClickableMenu hudMenu;
+        td::ClickableMenu mainMenuButton;
+        td::ClickableMenu muteButton;
+        td::ClickableMenu levelSelectMenu;
 
         // Map
         td::Map current_map;
@@ -85,6 +87,7 @@ class Game {
         void drawIntroScreen();
         void drawMainMenu();
         void drawMapTitleScreen();
+        void drawLevelSelect();
 
         // HUD
         void drawHUD();

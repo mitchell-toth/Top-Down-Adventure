@@ -63,6 +63,7 @@ namespace td {
         sf::Music music;
 
         void play();
+        void stop();
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -77,6 +78,7 @@ namespace td {
         sf::Sound sound;
 
         void play();
+        void stop();
     };
     //------------------------------------------------------------------------------------------------------------------
 
@@ -130,7 +132,7 @@ namespace td {
 
         // Getters
         std::vector<std::vector<std::string>> getMenuItems();
-        sf::Vector2f getPosition();
+        sf::Vector2f getPosition() const;
 
         // Setters
         void setRenderWindow(sf::RenderWindow* rw);

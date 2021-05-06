@@ -76,9 +76,14 @@ td::Music::Music(const std::string &path, bool loop, float volume, float pitch) 
 }
 td::Music::~Music() = default;
 
-// Play the sound effect
+// Play the music
 void td::Music::play() {
     this->music.play();
+}
+
+// Stop the music
+void td::Music::stop() {
+    this->music.stop();
 }
 //------------------------------------------------------------------------------------------------------------------
 
@@ -99,6 +104,11 @@ td::Sound::~Sound() = default;
 // Play the sound effect
 void td::Sound::play() {
     this->sound.play();
+}
+
+// Stop the sound effect
+void td::Sound::stop() {
+    this->sound.stop();
 }
 //------------------------------------------------------------------------------------------------------------------
 
@@ -228,7 +238,7 @@ std::vector<std::vector<std::string>> td::ClickableMenu::getMenuItems() {
 }
 
 // Return the menu's starting x and y coordinates
-sf::Vector2f td::ClickableMenu::getPosition() {
+sf::Vector2f td::ClickableMenu::getPosition() const {
     return {this->x, this->y};
 }
 
@@ -290,15 +300,15 @@ void td::ClickableMenu::setOutline(sf::Color color, int thickness) {
 // Render the menu by printing the text options
 void td::ClickableMenu::drawMenu() {
     for (int r=0; r<this->menuItems.size(); r++) {
-        float rect_x = this->menuItemRects[r][0].getPosition().x;
         for (int c=0; c<this->menuItems[r].size(); c++) {
             // Get the hover rectangle
             sf::RectangleShape rect = this->menuItemRects[r][c];
             sf::Text text = sf::Text(sf::String(this->menuItems[r][c]), this->textConfig.font, this->textConfig.size);
 
             // Set the text's x and y based on the hover rectangle's position
-            this->textConfig.x = (int)(rect_x + this->padding[3]);
-            this->textConfig.y = (int)((float)this->y + ((float)r * rect.getGlobalBounds().height));
+            this->textConfig.x = (int)(rect.getPosition().x + (rect.getSize().x * 0.5) - (text.getGlobalBounds().width * 0.5));
+            this->textConfig.y = (int)(rect.getPosition().y - (text.getGlobalBounds().height * 0.5) + (text.getGlobalBounds().height * 0.5));
+
             this->textConfig.align = td::Text::Align::LEFT;
             if (this->optionColors.size() >= r+1 && this->optionColors[r].size() >= c+1) {
                 this->textConfig.color = this->optionColors[r][c];
@@ -312,9 +322,6 @@ void td::ClickableMenu::drawMenu() {
             rect.setOutlineColor(this->outlineColor);
             rect.setOutlineThickness(1);
             this->target->draw(rect);
-
-            // Setup the x position for the next menu option
-            rect_x += this->padding[3] + text.getGlobalBounds().width + this->padding[1];
         }
     }
 }

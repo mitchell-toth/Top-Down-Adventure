@@ -174,8 +174,31 @@ void Game::initMenus() {
 
     // HUD menu
     // One option for "MENU" to go back to the main menu
-    this->hudMenu = td::ClickableMenu(this->window, (float)(this->window->getSize().x * 0.01), (float)(this->window->getSize().y * 0.93),
+    this->mainMenuButton = td::ClickableMenu(this->window, (float)(this->window->getSize().x * 0.01), (float)(this->window->getSize().y * 0.93),
                                         {10},{{"MENU"}},{.font=this->capsFont, .size=60});
+
+    // Mute button to go on the HUD
+    // One option for "MUTE" to stop the music
+    this->muteButton = td::ClickableMenu(this->window, (float)(this->window->getSize().x * 0.91), (float)(this->window->getSize().y * 0.93),
+                                         {10},{{"MUTE"}},{.font=this->capsFont, .size=60, .align=td::Text::Align::RIGHT});
+
+    // Level select menu
+    // Numeric options for selecting which level to play
+    std::vector<std::vector<std::string>> levelOptions = std::vector<std::vector<std::string>>();
+    int r = -1;
+    for (int c=0; c<this->maps.size(); c++) {
+        if (levelOptions.size() % 6 == 0) {
+            levelOptions.emplace_back(std::vector<std::string>());
+            r++;
+        }
+        std::stringstream ss; ss << c+1;
+        levelOptions[r].emplace_back(ss.str());
+    }
+    this->levelSelectMenu.setRenderWindow(this->window);
+    this->levelSelectMenu.setTextConfig({.font=this->capsFont, .size=120, .align=td::Text::Align::CENTER, .color=sf::Color::Blue});
+    this->levelSelectMenu.setButtonSize(200, 200);
+    this->levelSelectMenu.setPosition(0, (float)(this->window->getSize().y * 0.35));
+    this->levelSelectMenu.setMenuItems(levelOptions);
 }
 
 
@@ -197,6 +220,7 @@ void Game::update() {
 
     if (this->player.p.onCheckpoint()) {
         this->player.p.setCheckpoint();
+        //TODO: commit items in inventory
     }
 
     // Move enemies
@@ -219,6 +243,11 @@ void Game::update() {
     // Respawn if player is dead
     if (this->player.p.isDead()) {
         this->numDeaths++;
+
+        //TODO: Clear any un-committed items
+
+        // this->player.p.clearInventory();
+
         this->hitEnemySound->play();
         this->pauseRespawn();
     }
@@ -241,7 +270,7 @@ void Game::update() {
 // Render
 void Game::render() {
     // Update the pause variable
-    if (this->paused()) this->pause--;
+    if (this->paused()) this->pause -= this->elapsed;
 
     // Clear previous frame renders
     this->window->clear(this->background_color);
@@ -260,7 +289,7 @@ void Game::render() {
         case MAIN_MENU:
             this->drawMainMenu(); return;
         case State::LEVEL_SELECT:
-            return;
+            this->drawLevelSelect(); return;
         case MAP_TITLE_SCREEN:
             this->drawMapTitleScreen(); return;
         default:
@@ -316,11 +345,17 @@ void Game::pollEvents() {
                         this->state = State::LEVEL_SELECT;
                     }
                 }
-                // If playing the game...
-                else if (this->state == State::PLAYING) {
-                    if (this->hudMenu.onMouseClick() == "MENU") {
-                        this->state = State::MAIN_MENU;
-                    }
+
+                // Main menu button
+                if (this->mainMenuButton.onMouseClick() == "MENU") {
+                    this->state = State::MAIN_MENU;
+                }
+
+                // Mute button
+                if (this->muteButton.onMouseClick() == "MUTE") {
+                    if (this->music->music.getStatus() == sf::Sound::Status::Playing)
+                        this->music->stop();
+                    else this->music->play();
                 }
         }
     }
@@ -330,7 +365,7 @@ void Game::pollEvents() {
 // Pause before respawning the player
 void Game::pauseRespawn() {
     this->respawnPlayer = true;
-    this->pause = 50;
+    this->pause = 0.75;
 }
 
 
@@ -351,7 +386,7 @@ void Game::loadMap(int map_idx) {
 
     // Display the map's title screen
     this->state = State::MAP_TITLE_SCREEN;
-    this->pause = 110;
+    this->pause = 2;
 }
 
 
@@ -395,6 +430,10 @@ void Game::drawMainMenu() {
     td::Text::print(this->window, "MUSIC: SNAYK",
                     {.font=this->capsFont, .x=(int)(this->window->getSize().x * 0.98), .y=-5, .size=60, .align=td::Text::Align::RIGHT});
 
+    // Draw the "MUTE" button
+    this->muteButton.drawMenu();
+    this->muteButton.onMouseOver();
+
     // Display the rendered objects
     this->window->display();
 }
@@ -424,6 +463,29 @@ void Game::drawMapTitleScreen() {
 }
 
 
+// Render the level select screen and menu
+void Game::drawLevelSelect() {
+    this->window->clear(sf::Color::White);
+    this->titleScreenBackground.draw(this->window);
+
+    td::Text::print(this->window, "SELECT LEVEL", {.font=this->capsFont, .y=100, .size=120, .align=td::Text::Align::CENTER, .color=sf::Color::Black});
+
+    // Draw the level select menu
+    this->levelSelectMenu.drawMenu();
+    this->levelSelectMenu.onMouseOver();
+
+    // Draw the "MENU" button
+    this->mainMenuButton.drawMenu();
+    this->mainMenuButton.onMouseOver();
+
+    // Draw the "MUTE" button
+    this->muteButton.drawMenu();
+    this->muteButton.onMouseOver();
+
+    this->window->display();
+}
+
+
 // Render the level text, number of fails, and a button to go back to the Main Menu
 // Drawn when state is PLAYING
 void Game::drawHUD() {
@@ -440,6 +502,10 @@ void Game::drawHUD() {
                     {.font=this->capsFont, .x=(int)(this->window->getSize().x * 0.98), .y=-5, .size=60, .align=td::Text::Align::RIGHT});
 
     // Draw the "MENU" button
-    this->hudMenu.drawMenu();
-    this->hudMenu.onMouseOver();
+    this->mainMenuButton.drawMenu();
+    this->mainMenuButton.onMouseOver();
+
+    // Draw the "MUTE" button
+    this->muteButton.drawMenu();
+    this->muteButton.onMouseOver();
 }
