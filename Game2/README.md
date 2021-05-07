@@ -83,7 +83,7 @@ Here we also set the tile size, which governs the n x n pixel dimensions of each
 map1.draw(this->window);
 ```
 
-![World's Hardest Game level 1 - our example](img/worlds-hardest-game-level-1-TDAHelper.png "Level 1 of the World's Hardest Game, our example")
+![World's Hardest Game level 1 - our example](img/worlds-hardest-game-level-1-TDAHelper.PNG "Level 1 of the World's Hardest Game, our example")
 
 # Player
 
@@ -118,7 +118,7 @@ Draw the player in the "render()" section of the game loop:
 player.draw(this->window);
 ```
 
-![World's Hardest Game level 1 with player](img/worlds-hardest-game-level-1-with-player.png "Level 1 of the World's Hardest Game with a player")
+![World's Hardest Game level 1 with player](img/worlds-hardest-game-level-1-with-player.PNG "Level 1 of the World's Hardest Game with a player")
 
 # Player-Map Interaction
 
@@ -348,6 +348,6 @@ Play the audio with `this->music.play();` or `this->sound.play()`, and similarly
 
 In just a few lines of code, we managed to make a level that looks and behaves remarkably similar to The World's Hardest Game.
 
-![The finished product](img/worlds-hardest-game-level-1-finished.png "The finished product")
+![The finished product](img/worlds-hardest-game-level-1-finished.PNG "The finished product")
 
 With TDAHelper, top-down adventure games are a breeze. Try it out! Enjoy!
