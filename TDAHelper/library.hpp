@@ -85,6 +85,7 @@ namespace td {
     class Shapes {
     public:
         static sf::RectangleShape rect(float x, float y, int width, int height, sf::Color color = sf::Color::White);
+        static sf::CircleShape circ(float x, float y, float radius, sf::Color color = sf::Color::White);
         static sf::VertexArray line(int x1, int y1, int x2, int y2, sf::Color color = sf::Color::White);
     };
     //------------------------------------------------------------------------------------------------------------------
@@ -363,6 +364,8 @@ namespace td {
         // Enemy interaction
         bool isTouchingEnemy();
         std::vector<td::Enemy*> getTouchingEnemies();
+        bool isTouchingCircleEnemy();
+        std::vector<td::Enemy*> getTouchingCircleEnemies();
 
         // Item interaction
         bool isTouchingItem();
@@ -372,6 +375,7 @@ namespace td {
         // Inventory
         std::vector<td::Item*> getInventory();
         void clearInventory();
+        void resetInventory();
 
         // Health
         int getHealth() const;
@@ -392,6 +396,7 @@ namespace td {
         std::vector<sf::Vector2f> waypoints;
         int move_option{};
         unsigned int current_waypoint_index;
+        int direction;
     public:
         // Constructor/destructor
         Enemy();
@@ -423,6 +428,7 @@ namespace td {
     class Item : public RenderObject {
     private:
         bool obtained;
+        bool committed;
     public:
         Item();
         Item(const td::Map& map, int width, int height, sf::Color color);
@@ -436,6 +442,10 @@ namespace td {
         // Obtained status
         bool isObtained() const;
         void setObtained(bool item_obtained);
+
+        // Committed status
+        bool isCommitted() const;
+        void setCommitted(bool item_committed);
     };
 }
 

@@ -124,6 +124,15 @@ sf::RectangleShape td::Shapes::rect(float x, float y, int width, int height, sf:
     return rect;
 }
 
+// Construct and return a circle
+sf::CircleShape td::Shapes::circ(float x, float y, float radius, sf::Color color) {
+    sf::CircleShape circ;
+    circ.setRadius(radius);
+    circ.setPosition(x, y);
+    circ.setFillColor(color);
+    return circ;
+}
+
 // Construct and return a line
 sf::VertexArray td::Shapes::line(int x1, int y1, int x2, int y2, sf::Color color) {
     sf::VertexArray l(sf::LinesStrip, 2);
@@ -918,6 +927,28 @@ std::vector<td::Enemy*> td::Player::getTouchingEnemies() {
     return touching_enemies;
 }
 
+// isTouchingEnemy(), with circles
+bool td::Player::isTouchingCircleEnemy() {
+    return !this->getTouchingCircleEnemies().empty();
+}
+
+// getTouchingEnemies(), with circles
+// Treats each enemy as a circle object
+std::vector<td::Enemy*> td::Player::getTouchingCircleEnemies() {
+    std::vector<td::Enemy*> touching_enemies = std::vector<td::Enemy*>();
+
+    sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
+    for (auto enemy : *this->map.getEnemies()) {
+        // Create a temporary circle object for the enemy. The radius is enemy width minus 1 to give some grace.
+        sf::CircleShape enemy_circ = td::Shapes::circ(
+                enemy->getPosition().x, enemy->getPosition().y, (float)enemy->getSize().width/2 - 1);
+        if (p_rect.getGlobalBounds().intersects(enemy_circ.getGlobalBounds())) {
+            touching_enemies.emplace_back(enemy);
+        }
+    }
+    return touching_enemies;
+}
+
 // Check if the player is currently colliding with any un-obtained items
 bool td::Player::isTouchingItem() {
     return !this->getTouchingItems().empty();
@@ -952,11 +983,25 @@ std::vector<td::Item*> td::Player::getInventory() {
     return this->inventory;
 }
 
-// Clear the player's inventory.
-// Take care to set each item's state back to un-obtained
+// Clear any un-committed items from the player's inventory.
+// Take care to set each item's state back to un-obtained and un-committed
 void td::Player::clearInventory() {
-    for (auto item: this->inventory) {
+    int size = this->inventory.size();
+    for (int i=size-1; i>=0; i--) {
+        td::Item* item = this->inventory[i];
+        if (!item->isCommitted()) {
+            item->setObtained(false);
+            this->inventory.erase(this->inventory.begin() + i);
+        }
+    }
+}
+
+// Completely clear the player's inventory.
+// Take care to set each item's state back to un-obtained and un-committed
+void td::Player::resetInventory() {
+    for (auto item : this->inventory) {
         item->setObtained(false);
+        item->setCommitted(false);
     }
     this->inventory.clear();
 }
@@ -1001,6 +1046,7 @@ td::Enemy::Enemy() {
     this->waypoints = {};
     this->move_option = td::Enemy::MoveOptions::LOOP;
     this->current_waypoint_index = 0;
+    this->direction = 1;
 }
 td::Enemy::Enemy(const td::Map& map, int width, int height, sf::Color color, int harm) {
     this->map = map;
@@ -1011,6 +1057,7 @@ td::Enemy::Enemy(const td::Map& map, int width, int height, sf::Color color, int
     this->waypoints = {};
     this->move_option = td::Enemy::MoveOptions::LOOP;
     this->current_waypoint_index = 0;
+    this->direction = 1;
 }
 td::Enemy::~Enemy() = default;
 
@@ -1085,7 +1132,15 @@ void td::Enemy::setStartTile(int row, int col) {
 
 // Move the enemy, following a set of waypoints
 void td::Enemy::move(float elapsed) {
-    sf::Vector2f target_waypoint = this->waypoints[(this->current_waypoint_index + 1) % this->waypoints.size()];
+    // If the move option is back and forth, reverse the direction upon reaching the last waypoint
+    if (this->move_option == td::Enemy::MoveOptions::BACK_AND_FORTH) {
+        if ((this->current_waypoint_index + this->direction) < 0 ||
+            (this->current_waypoint_index + this->direction) >= this->waypoints.size()) {
+            this->direction *= -1;  // Switch the direction
+        }
+    }
+    // Otherwise, if the move option is to loop, the waypoints will wrap around
+    sf::Vector2f target_waypoint = this->waypoints[(this->current_waypoint_index + this->direction) % this->waypoints.size()];
 
     float current_x = this->x;
     float current_y = this->y;
@@ -1136,7 +1191,15 @@ void td::Enemy::move(float elapsed) {
 
     // If reached target waypoint, update waypoint index
     if (new_x == target_x && new_y == target_y) {
-        this->current_waypoint_index = (this->current_waypoint_index + 1) % this->waypoints.size();
+        // If the move option is back and forth, reverse the direction upon reaching the last waypoint
+        if (this->move_option == td::Enemy::MoveOptions::BACK_AND_FORTH) {
+            if ((this->current_waypoint_index + this->direction) < 0 ||
+                (this->current_waypoint_index + this->direction) >= this->waypoints.size()) {
+                this->direction *= -1;  // Switch the direction
+            }
+        }
+        // Otherwise, if the move option is to loop, the waypoints will wrap around
+        this->current_waypoint_index = (this->current_waypoint_index + this->direction) % this->waypoints.size();
     }
 
     // Update the enemy's x and y
@@ -1151,10 +1214,12 @@ void td::Enemy::move(float elapsed) {
 // Constructor/destructor
 td::Item::Item() : RenderObject() {
     this->obtained = false;
+    this->committed = false;
 }
 td::Item::Item(const td::Map& map, int width, int height, sf::Color color) : RenderObject() {
     this->map = map;
     this->obtained = false;
+    this->committed = false;
     this->width = width;
     this->height = height;
     this->color = color;
@@ -1164,6 +1229,7 @@ td::Item::~Item() = default;
 // Reset the item's state to un-obtained
 void td::Item::reset() {
     this->obtained = false;
+    this->committed = false;
 }
 
 // Render the item, but don't render it if it has been obtained already
@@ -1183,4 +1249,14 @@ bool td::Item::isObtained() const {
 // Set if the item should be consider obtained
 void td::Item::setObtained(bool item_obtained) {
     this->obtained = item_obtained;
+}
+
+// Has the item been committed (secured) by the player?
+bool td::Item::isCommitted() const {
+    return this->committed;
+}
+
+// Set if the item should be consider committed (secured)
+void td::Item::setCommitted(bool item_committed) {
+    this->committed = item_committed;
 }

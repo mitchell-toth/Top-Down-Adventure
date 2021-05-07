@@ -21,7 +21,8 @@ class Game {
             MAIN_MENU = 2,
             LEVEL_SELECT = 3,
             MAP_TITLE_SCREEN = 4,
-            PLAYING = 5
+            PLAYING = 5,
+            WIN = 6
         };
         State state{};
 
@@ -60,6 +61,7 @@ class Game {
         // Sounds effects
         td::Sound* hitEnemySound{};
         td::Sound* mapTitleScreenSound{};
+        td::Sound* winSound{};
 
         // Gameplay
         bool respawnPlayer{};
@@ -88,6 +90,7 @@ class Game {
         void drawMainMenu();
         void drawMapTitleScreen();
         void drawLevelSelect();
+        void drawWinScreen();
 
         // HUD
         void drawHUD();

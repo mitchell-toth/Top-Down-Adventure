@@ -59,6 +59,7 @@ std::vector<td::Map> Maps::initMaps(int tile_size) {
 
     // Add enemies
     Maps::addEnemy(map2, {{6, 8}, {8, 8}, {6, 12}}, 10);
+    Maps::addEnemy(map2, {{10, 10}, {10, 15}, {5, 15}}, 20, td::Enemy::MoveOptions::BACK_AND_FORTH);
 
     // Add coins
     Maps::addCoin(map2, 4, 3);

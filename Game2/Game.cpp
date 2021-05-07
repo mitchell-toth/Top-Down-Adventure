@@ -31,6 +31,7 @@ Game::~Game() {
     delete this->music;
     delete this->hitEnemySound;
     delete this->mapTitleScreenSound;
+    delete this->winSound;
 }
 
 
@@ -154,6 +155,7 @@ void Game::initSounds() {
     // Sounds effects
     this->hitEnemySound = new td::Sound("../assets/sounds/enemy-hit.wav");
     this->mapTitleScreenSound = new td::Sound("../assets/sounds/map-title-screen.wav");
+    this->winSound = new td::Sound("../assets/sounds/win.wav");
 }
 
 
@@ -220,15 +222,19 @@ void Game::update() {
 
     if (this->player.p.onCheckpoint()) {
         this->player.p.setCheckpoint();
-        //TODO: commit items in inventory
+        // Commit all items in the player's inventory
+        // This way, it's a true checkpoint
+        for (auto item : this->player.p.getInventory()) {
+            item->setCommitted(true);
+        }
     }
 
     // Move enemies
     this->current_map.moveEnemies(this->elapsed);
 
     // Handle enemy collision. It's important that the enemies have moved before this point
-    if (this->player.p.isTouchingEnemy()) {
-        for (auto enemy: this->player.p.getTouchingEnemies()) {
+    if (this->player.p.isTouchingCircleEnemy()) {
+        for (auto enemy: this->player.p.getTouchingCircleEnemies()) {
             this->player.p.loseHealth(enemy->getHarm());
         }
     }
@@ -243,10 +249,8 @@ void Game::update() {
     // Respawn if player is dead
     if (this->player.p.isDead()) {
         this->numDeaths++;
-
-        //TODO: Clear any un-committed items
-
-        // this->player.p.clearInventory();
+        // Clear any un-committed items from the player's inventory
+        this->player.p.clearInventory();
 
         this->hitEnemySound->play();
         this->pauseRespawn();
@@ -258,10 +262,15 @@ void Game::update() {
         if (this->player.p.getInventory().size() == this->current_map.getItems()->size()) {
             this->map_index++;
             if (this->map_index >= this->maps.size()) {
-                //TODO: win screen?
-                this->map_index = 0;  // Loop back around to the first map
+                this->state = State::WIN;
+                this->map_index = 0;  // Reset back to the first map
+                // Display a win screen
+                this->winSound->play();
+                this->drawWinScreen();
             }
-            this->loadMap(this->map_index);
+            else {
+                this->loadMap(this->map_index);
+            }
         }
     }
 }
@@ -292,6 +301,8 @@ void Game::render() {
             this->drawLevelSelect(); return;
         case MAP_TITLE_SCREEN:
             this->drawMapTitleScreen(); return;
+        case WIN:
+            this->drawWinScreen(); return;
         default:
             break;
     }
@@ -345,6 +356,14 @@ void Game::pollEvents() {
                         this->state = State::LEVEL_SELECT;
                     }
                 }
+                // If in the level selector...
+                else if (this->state == State::LEVEL_SELECT) {
+                    std::string selectedLevel = levelSelectMenu.onMouseClick();
+                    if (!selectedLevel.empty()) {
+                        this->map_index = std::stoi(selectedLevel)-1;
+                        this->loadMap(this->map_index);
+                    }
+                }
 
                 // Main menu button
                 if (this->mainMenuButton.onMouseClick() == "MENU") {
@@ -378,7 +397,7 @@ void Game::loadMap(int map_idx) {
 
     // Configure player to use the new map
     this->player.p.setMap(this->current_map);
-    this->player.p.clearInventory();
+    this->player.p.resetInventory();
 
     // Reset map items
     this->current_map.resetEnemies();
@@ -473,6 +492,30 @@ void Game::drawLevelSelect() {
     // Draw the level select menu
     this->levelSelectMenu.drawMenu();
     this->levelSelectMenu.onMouseOver();
+
+    // Draw the "MENU" button
+    this->mainMenuButton.drawMenu();
+    this->mainMenuButton.onMouseOver();
+
+    // Draw the "MUTE" button
+    this->muteButton.drawMenu();
+    this->muteButton.onMouseOver();
+
+    this->window->display();
+}
+
+
+// Render the end-game win screen, congratulating the player and showing them their fail count
+void Game::drawWinScreen() {
+    this->window->clear(sf::Color::White);
+    this->titleScreenBackground.draw(this->window);
+
+    td::Text::print(this->window, "YOU WIN!", {.font=this->capsFont, .y=100, .size=120, .align=td::Text::Align::CENTER, .color=sf::Color::Blue});
+    td::Text::print(this->window, "Now try it with your eyes closed.", {.font=this->capsFont, .y=250, .size=50, .align=td::Text::Align::CENTER, .color=sf::Color::Black});
+
+    std::stringstream ss;
+    ss << "Fails: " << this->numDeaths;
+    td::Text::print(this->window, ss.str(), {.font=this->capsFont, .y=450, .size=50, .align=td::Text::Align::CENTER, .color=sf::Color::Black});
 
     // Draw the "MENU" button
     this->mainMenuButton.drawMenu();
