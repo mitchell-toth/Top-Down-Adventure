@@ -1093,6 +1093,20 @@ void td::RenderObject::setTexture(const std::string& file) {
     this->drawable.setTexture(player_texture);
 }
 
+
+/**
+ * @brief Set the checkpoints texture. Will take precedence over any object color specified previously.
+ * @param file The string path to a texture file.
+ */
+void td::RenderObject::setCPTexture(const std::string& file) {
+    auto* CP_texture = new sf::Texture();
+    if (!CP_texture->loadFromFile(file)) {
+        throw std::invalid_argument("Could not load texture at path " + file);
+    }
+    this->CPTexture = CP_texture;
+    this->CPdrawable.setTexture(CP_texture);
+}
+
 /**
  * @brief Get the object's width and height.
  * @return A td::Util::size instance of the object's size.
