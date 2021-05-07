@@ -363,12 +363,15 @@ namespace td {
         // Color/texture
         sf::Color color;
         sf::Texture* texture;
+        sf::Texture* CPTexture;
 
         // Map
         td::Map map;
 
         // Render
         sf::RectangleShape drawable;
+        sf::RectangleShape CPdrawable;
+
     public:
         RenderObject();
         ~RenderObject();
