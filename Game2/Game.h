@@ -2,7 +2,6 @@
 #define GAME_H
 
 #include <TDAHelper/library.hpp>
-#include "Player.h"
 #include "Maps.h"
 
 class Game {
@@ -49,7 +48,7 @@ class Game {
         float zoom{};
 
         // Gameplay
-        Player player;
+        td::Player player;
 
         // Fonts/text
         sf::Font regFont;

@@ -1,6 +1,13 @@
 #ifndef ENGINE_LIBRARY_HPP
 #define ENGINE_LIBRARY_HPP
 
+/**
+ * @file library.h
+ * @brief The TDAHelper library declaration file containing the td namespace.
+ * @authors Mitchell Toth, Jacob Haimes
+ * @date May 2021
+ */
+
 #include <iostream>
 #include <SFML/Audio.hpp>
 #include <SFML/Network.hpp>
@@ -12,6 +19,10 @@
 #include <fstream>
 #include <cmath>
 
+/**
+ * @namespace td
+ * @brief The namespace in which all TDAHelper functionality and types are scoped.
+ */
 namespace td {
     // Forward declarations
     class Enemy;
@@ -20,12 +31,20 @@ namespace td {
     // Classes:
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class Util
+     * @brief A static collection of helpful utility methods and types.
+     */
     class Util {
     public:
         template <typename V>
         static int find(std::vector<V> vector, V val);
         template<typename K, typename V>
         static bool keyInMap(std::map<K, V> map, K key);
+        /**
+         * @struct size
+         * @brief Helpful struct for storing a pair of width and height values.
+         */
         struct size {
             int width{0};
             int height{0};
@@ -34,13 +53,26 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class Text
+     * @brief Useful types and a print utility to conveniently display text to the screen.
+     */
     class Text {
     public:
+        /**
+         * @enum Align
+         * @brief Text alignment, choice of LEFT, CENTER, or RIGHT.
+         */
         enum Align {
             LEFT = -1,
             CENTER = 0,
             RIGHT = 1
         };
+        /**
+         * @struct Config
+         * @brief Text configuration, including font, position, size, alignment, and color.
+         * Default values: x=0, y=0, size=12, align=td::Text::Align::LEFT, color=sf::Color::WHITE
+         */
         struct Config {
             sf::Font font{};
             int x{0};
@@ -53,6 +85,11 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class Music
+     * @brief Utility for creating and playing instances of SFML music. Great for larger sound files.
+     * The underlying SFML music object is made public to allow for greatest use and flexibility.
+     */
     class Music {
     public:
         // Constructor/destructor
@@ -67,6 +104,11 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class Sound
+     * @brief Utility for creating and playing instances of SFML sound effects. Better for smaller sound files.
+     * The underlying SFML sound object is made public to allow for greatest use and flexibility.
+     */
     class Sound {
     public:
         // Constructor/destructor
@@ -82,6 +124,10 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class Shapes
+     * @brief Utility for creating common shape objects.
+     */
     class Shapes {
     public:
         static sf::RectangleShape rect(float x, float y, int width, int height, sf::Color color = sf::Color::White);
@@ -90,6 +136,10 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class ClickableMenu
+     * @brief Utility for quick creation of clickable button menus, capable of a 2D grid button layout.
+     */
     class ClickableMenu {
     private:
         // Window
@@ -157,6 +207,10 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class SpriteSheet
+     * @brief Defines a mapping between rectangle shapes and textures.
+     */
     class SpriteSheet {
     public:
         // Constructor/destructor
@@ -169,6 +223,12 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class Tile
+     * @brief An individual tile within a tile grid.
+     * Stores information about sprite_id (what sprite is on the tile)
+     * and type_id (the tile's type and how the tile should behave).
+     */
     class Tile {
     public:
         // Constructor/destructor
@@ -192,6 +252,12 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class Map
+     * @brief A tile grid map composed of Tile objects.
+     * Stores key game information such as enemies and items.
+     * Also handles crucial functions like player-tile collision detection.
+     */
     class Map {
     private:
         // Game map
@@ -226,7 +292,10 @@ namespace td {
         explicit Map(const std::string& path);
         ~Map();
 
-        // Special tile types
+        /**
+         * @enum TileTypes
+         * @brief Special tile types.
+         */
         enum TileTypes {
             WALL = 1,
             START = 2,
@@ -275,6 +344,11 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class RenderObject
+     * @brief Base class for objects that are displayed on a Map instance.
+     * Defines base methods and attributes such as position, texture, and size that are shared between map objects.
+     */
     class RenderObject {
     protected:
         // Position
@@ -318,6 +392,11 @@ namespace td {
 
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class Player
+     * @brief The user-controlled player that can move around and explore Map instances.
+     * Inherits from RenderObject.
+     */
     class Player : public RenderObject {
     private:
         // Movement
@@ -387,6 +466,12 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class Enemy
+     * @brief An entity that harms Player instances. Harm is inflicted when an enemy collides with a player.
+     * Moves via a waypoint system.
+     * Inherits from Player.
+     */
     class Enemy : public Player {
     private:
         // Harm
@@ -425,6 +510,12 @@ namespace td {
     };
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * @class Item
+     * @brief An obtainable entity that may be collected by Player instances.
+     * Each item has an obtained and committed status to track membership in a player's inventory.
+     * Inherits from RenderObject.
+     */
     class Item : public RenderObject {
     private:
         bool obtained;

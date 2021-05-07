@@ -1,9 +1,22 @@
+/**
+ * @file library.cpp
+ * @brief The TDAHelper implementation file.
+ *
+ * @authors Mitchell Toth, Jacob Haimes
+ * @date May 2021
+ */
+
 #include "library.hpp"
 
 /* Util */
 
-// Helper to locate a value within a std::vector object
-// Returns -1 if not found
+/**
+ * @brief Helper to locate a value within a std::vector object.
+ * @tparam V
+ * @param vector The std::vector to search through.
+ * @param val The value to search for.
+ * @return The integer index of the value, or -1 if not found.
+ */
 template<typename V>
 int td::Util::find(std::vector<V> vector, V val) {
     auto it = std::find(vector.begin(), vector.end(), val);
@@ -11,14 +24,28 @@ int td::Util::find(std::vector<V> vector, V val) {
     return -1;
 }
 
-// Helper to check if a key exists within a std::map object
+/**
+ * @brief Helper to check if a key exists within a std::map object.
+ * @tparam K
+ * @tparam V
+ * @param map The std::map to search through.
+ * @param key The map key to search for.
+ * @return True if the map contains the key, False otherwise.
+ */
 template<typename K, typename V>
 bool td::Util::keyInMap(std::map<K, V> map, K key) {
     if (map.count(key) != 0) return true;
     return false;
 }
 
-// Calculate the distance between two points
+/**
+ * @brief Calculate the Euclidean distance between two points.
+ * @param x1 x value of the first point
+ * @param y1 y value of the first point
+ * @param x2 x value of the second point
+ * @param y2 y value of the second point
+ * @return The floating point distance of a straight line passing between the points.
+ */
 float td::Util::dist(float x1, float y1, float x2, float y2) {
     return (float)std::sqrt(std::pow(x2-x1, 2) +std::pow(y2-y1, 2));
 }
@@ -27,7 +54,14 @@ float td::Util::dist(float x1, float y1, float x2, float y2) {
 
 /* Text */
 
-// Helper to print text to the screen. Takes a window target, a text string, and a configuration object.
+/**
+ * @brief Helper to print text to an SFML render target.
+ * @param target The render target on which to display the text.
+ * @param s The string to print.
+ * @param config A configuration struct that defines where and how to draw the text.
+ * @param relativeToView A boolean telling how to process the text's x and y position.
+ * True = relative to the render target's view. False = absolute to the render target as a whole.
+ */
 void td::Text::print(sf::RenderTarget* target, const std::string &s, const td::Text::Config& config, bool relativeToView) {
     // Set up the text, size, and color
     sf::Text text = sf::Text();
@@ -43,7 +77,6 @@ void td::Text::print(sf::RenderTarget* target, const std::string &s, const td::T
         x = viewPos.x;
         y = viewPos.y;
     }
-
 
     // Set horizontal alignment
     if (config.align == td::Text::Align::LEFT) {  // Align left
@@ -65,8 +98,17 @@ void td::Text::print(sf::RenderTarget* target, const std::string &s, const td::T
 
 /* Music */
 
-// Constructor/destructor
+/**
+ * @brief Music class constructor. Default, no parameters.
+ */
 td::Music::Music() = default;
+/**
+ * @brief Music class constructor.
+ * @param path The string path to a music file.
+ * @param loop Boolean to determine if the music should loop or not.
+ * @param volume How loud the music should be. Default value: 100.f.
+ * @param pitch The pitch of the music. Default value: 1.f.
+ */
 td::Music::Music(const std::string &path, bool loop, float volume, float pitch) {
     if (!this->music.openFromFile(path))
         throw std::invalid_argument("Could not load audio at path " + path);
@@ -74,14 +116,21 @@ td::Music::Music(const std::string &path, bool loop, float volume, float pitch) 
     this->music.setVolume(volume);
     this->music.setPitch(pitch);
 }
+/**
+ * Music class destructor.
+ */
 td::Music::~Music() = default;
 
-// Play the music
+/**
+ * @brief Play the music.
+ */
 void td::Music::play() {
     this->music.play();
 }
 
-// Stop the music
+/**
+ * @brief Stop the music.
+ */
 void td::Music::stop() {
     this->music.stop();
 }
@@ -90,8 +139,16 @@ void td::Music::stop() {
 
 /* Sound */
 
-// Constructor/destructor
+/**
+ * Sound class constructor. Default, no parameters.
+ */
 td::Sound::Sound() = default;
+/**
+ * Sound class constructor.
+ * @param path The string path to a sound file.
+ * @param volume How loud the sound should be. Default value: 100.f.
+ * @param pitch The pitch of the sound. Default value: 1.f.
+ */
 td::Sound::Sound(const std::string &path, float volume, float pitch) {
     if (!this->buffer.loadFromFile(path))
         throw std::invalid_argument("Could not load audio at path " + path);
@@ -99,14 +156,21 @@ td::Sound::Sound(const std::string &path, float volume, float pitch) {
     this->sound.setVolume(volume);
     this->sound.setPitch(pitch);
 }
+/**
+ * Sound class destructor.
+ */
 td::Sound::~Sound() = default;
 
-// Play the sound effect
+/**
+ * @brief Play the sound effect.
+ */
 void td::Sound::play() {
     this->sound.play();
 }
 
-// Stop the sound effect
+/**
+ * @brief Stop the sound effect.
+ */
 void td::Sound::stop() {
     this->sound.stop();
 }
@@ -115,7 +179,15 @@ void td::Sound::stop() {
 
 /* Shapes */
 
-// Construct and return a rectangle
+/**
+ * @brief Helper to create an SFML RectangleShape object.
+ * @param x Starting x coordinate.
+ * @param y Starting y coordinate.
+ * @param width The rectangle's width.
+ * @param height The rectangle's height.
+ * @param color The rectangle's fill color.
+ * @return A newly created RectangleShape object.
+ */
 sf::RectangleShape td::Shapes::rect(float x, float y, int width, int height, sf::Color color) {
     sf::RectangleShape rect;
     rect.setPosition(sf::Vector2f(x, y));
@@ -124,7 +196,14 @@ sf::RectangleShape td::Shapes::rect(float x, float y, int width, int height, sf:
     return rect;
 }
 
-// Construct and return a circle
+/**
+ * @brief Helper to create an SFML CircleShape object.
+ * @param x Starting x coordinate.
+ * @param y Starting y coordinate.
+ * @param radius The circle's radius.
+ * @param color The circle's fill color.
+ * @return A newly created CircleShape object.
+ */
 sf::CircleShape td::Shapes::circ(float x, float y, float radius, sf::Color color) {
     sf::CircleShape circ;
     circ.setRadius(radius);
@@ -133,7 +212,15 @@ sf::CircleShape td::Shapes::circ(float x, float y, float radius, sf::Color color
     return circ;
 }
 
-// Construct and return a line
+/**
+ * @brief Helper to create an SFML VertexArray line object.
+ * @param x1 The x position of the first point.
+ * @param y1 The y position of the first point.
+ * @param x2 The x position of the second point.
+ * @param y2 The y position of the second point.
+ * @param color The line's color.
+ * @return A newly created VertexArray containing two points.
+ */
 sf::VertexArray td::Shapes::line(int x1, int y1, int x2, int y2, sf::Color color) {
     sf::VertexArray l(sf::LinesStrip, 2);
     l[0].position = sf::Vector2f(x1, y1);
@@ -147,10 +234,24 @@ sf::VertexArray td::Shapes::line(int x1, int y1, int x2, int y2, sf::Color color
 
 /* ClickableMenu */
 
-// Constructor/destructor
+/**
+ * @brief ClickableMenu class constructor. Default, no parameters.
+ */
 td::ClickableMenu::ClickableMenu() {
     this->initVariables();
 }
+/**
+ * @brief ClickableMenu class constructor.
+ * @param target The SFML RenderWindow to draw the menu on.
+ * @param start_x The menu's x position.
+ * @param start_y The menu's y position.
+ * @param padding Padding around each menu button's text. Values given in pixels and formatted like CSS padding.
+ * If one value is passed, the value will be applied in all 4 directions.
+ * If two values are passed, the first will count as both top and bottom, and the second will count as right and left.
+ * If four values passed, each value is applied clockwise, starting with the top.
+ * @param menuItems A 2D vector containing the menu's string options.
+ * @param textConfig An instance of td::Text::Config defining how the text for menu items should be rendered.
+ */
 td::ClickableMenu::ClickableMenu(sf::RenderWindow* target, float start_x, float start_y, const std::vector<int>& padding,
                                  std::vector<std::vector<std::string>> menuItems,
                                  const td::Text::Config& textConfig) {
@@ -168,9 +269,14 @@ td::ClickableMenu::ClickableMenu(sf::RenderWindow* target, float start_x, float 
     // Set up the menu item on-hover rectangles
     this->createOnHoverRectangles();
 }
-
+/**
+ * ClickableMenu class destructor.
+ */
 td::ClickableMenu::~ClickableMenu() = default;
 
+/**
+ * @brief Intitialize the class attributes to default values.
+ */
 void td::ClickableMenu::initVariables() {
     this->x = 0;
     this->y = 0;
@@ -186,7 +292,11 @@ void td::ClickableMenu::initVariables() {
     this->textConfig = {};
 }
 
-// Set up the menu item rectangles that highlight when moused over
+/**
+ * @brief Construct the rectangles that will be overlaid atop each menu item.
+ * These rectangles will listen for mouse hover events and will become highlighted when moused over.
+ * Special care is taken if align is set to td::Text::Align::CENTER.
+ */
 void td::ClickableMenu::createOnHoverRectangles() {
     // Create a vector of colored rectangles to go behind the menu options text
     for (int r=0; r<this->menuItems.size(); r++) {
@@ -220,7 +330,7 @@ void td::ClickableMenu::createOnHoverRectangles() {
             rect_x += (float)width;
         }
 
-        // Iterate over the rectangles to find their total width
+        // If the alignment is CENTER, iterate over the rectangles to find their total width
         // Then draw them at the appropriate starting x location using that information
         if (this->textConfig.align == td::Text::Align::CENTER) {
             int totalWidth = 0;
@@ -241,29 +351,48 @@ void td::ClickableMenu::createOnHoverRectangles() {
     }
 }
 
-// Return the string options available in the menu
+/**
+ * @brief Return the string options available in the menu.
+ * @return A 2D vector containing all menu item strings.
+ */
 std::vector<std::vector<std::string>> td::ClickableMenu::getMenuItems() {
     return this->menuItems;
 }
 
-// Return the menu's starting x and y coordinates
+/**
+ * @brief Return the menu's starting x and y coordinates.
+ * @return The view-adjusted x and y position of the top-left corner of the menu.
+ */
 sf::Vector2f td::ClickableMenu::getPosition() const {
     return {this->x, this->y};
 }
 
-// Specify the render window that the menu should use
+/**
+ * @brief Specify the render window that the menu should use.
+ * @param rw An SFML RenderWindow.
+ */
 void td::ClickableMenu::setRenderWindow(sf::RenderWindow* rw) {
     this->target = rw;
 }
 
-// Set the top-left corner position of the menu
+/**
+ * @brief Set the top-left corner position of the menu.
+ * @param start_x The menu's desired x position.
+ * @param start_y The menu's desired y position.
+ */
 void td::ClickableMenu::setPosition(float start_x, float start_y) {
     sf::Vector2f viewPos = this->target->mapPixelToCoords({(int)start_x, (int)start_y});
     this->x = viewPos.x;
     this->y = viewPos.y;
 }
 
-// Set the padding (in pixels) that goes around each menu option string
+/**
+ * @brief Set the padding (in pixels) that goes around each menu option string.
+ * @param p The padding around each menu button's text. Values given in pixels and formatted like CSS padding.
+ * If one value is passed, the value will be applied in all 4 directions.
+ * If two values are passed, the first will count as both top and bottom, and the second will count as right and left.
+ * If four values passed, each value is applied clockwise, starting with the top.
+ */
 void td::ClickableMenu::setPadding(const std::vector<int>& p) {
     if (p.size() == 1) this->padding = {p[0], p[0], p[0], p[0]};
     else if (p.size() == 2) this->padding = {p[0], p[1], p[0], p[1]};
@@ -271,42 +400,64 @@ void td::ClickableMenu::setPadding(const std::vector<int>& p) {
     else this->padding = p;
 }
 
-// Specify the options that are to be in the menu
+/**
+ * @brief Specify the options that are to be in the menu.
+ * @param items A 2D vector of string menu items.
+ * Each string represents a button, and each vector of strings represents a row of buttons.
+ */
 void td::ClickableMenu::setMenuItems(const std::vector<std::vector<std::string>>& items) {
     this->menuItems = items;
     this->createOnHoverRectangles();
 }
 
-// Set the text styling and configuration for each menu option
+/**
+ * @brief Set the text styling and configuration for each menu option.
+ * @param config An instance of td::Text::Config.
+ */
 void td::ClickableMenu::setTextConfig(const td::Text::Config& config) {
     this->textConfig = config;
 }
 
-// Set the absolute button width and height
-// This is only if the default sizing and padding is not desirable
+/**
+ * @brief Set the absolute width and height for each menu item button.
+ * This should only be specified if the default sizing and padding are not desirable.
+ * @param width Button width.
+ * @param height Button height.
+ */
 void td::ClickableMenu::setButtonSize(int width, int height) {
     this->buttonWidth = width;
     this->buttonHeight = height;
 }
 
-// Specify a color for each menu option. Done via a parallel 2D vector.
+/**
+ * @brief Specify a color for each menu option.
+ * @param colors A parallel 2D vector containing a color for each menu option button.
+ */
 void td::ClickableMenu::setOptionColors(const std::vector<std::vector<sf::Color>>& colors) {
     this->optionColors = colors;
 }
 
-// Specify the color that lights up on hover over a menu item
+/**
+ * @brief Specify the color that lights up on hover over a menu item.
+ * @param color The on-hover highlight color. Default value: sf::Color(140, 140, 140, 100).
+ */
 void td::ClickableMenu::setOnHoverColor(sf::Color color) {
     this->onHoverColor = color;
 }
 
-// Specify the color that outlines the menu item
-// Transparent by default
+/**
+ * @brief Specify the color that outlines each menu item.
+ * @param color Outline color. Default value: sf::Color::Transparent;
+ * @param thickness Outline thickness. Default value: 0.
+ */
 void td::ClickableMenu::setOutline(sf::Color color, int thickness) {
     this->outlineColor = color;
     this->outlineThickness = thickness;
 }
 
-// Render the menu by printing the text options
+/**
+ * @brief Render the menu by printing the text options and hover rectangles.
+ */
 void td::ClickableMenu::drawMenu() {
     for (int r=0; r<this->menuItems.size(); r++) {
         for (int c=0; c<this->menuItems[r].size(); c++) {
@@ -335,7 +486,11 @@ void td::ClickableMenu::drawMenu() {
     }
 }
 
-// Check if the mouse is within any of the menu options rectangles. If so, draw the highlighted rectangle
+/**
+ * @brief The menu's mouse hover event listener.
+ * Checks if the mouse is within any of the menu options rectangles. If so, draw the highlighted rectangle.
+ * Must be called each frame.
+ */
 void td::ClickableMenu::onMouseOver() {
     sf::Vector2i pixelPos = sf::Mouse::getPosition(*this->target);  // Get mouse x and y
     sf::Vector2f viewPos = this->target->mapPixelToCoords(pixelPos);  // Get mouse x and y relative to view
@@ -351,7 +506,12 @@ void td::ClickableMenu::onMouseOver() {
     }
 }
 
-// Check if a mouse click occurred in a menu item. If so, return the corresponding state
+/**
+ * @brief The menu's mouse click event listener.
+ * Checks if a mouse click occurred in a menu item rectangle. If so, return the corresponding item string.
+ * Must be called each frame.
+ * @return The string corresponding to the clicked menu option. If no option was clicked this frame, return "".
+ */
 std::string td::ClickableMenu::onMouseClick() {
     sf::Vector2i pixelPos = sf::Mouse::getPosition(*this->target);  // Get mouse x and y
     sf::Vector2f viewPos = this->target->mapPixelToCoords(pixelPos);  // Get mouse x and y relative to view
@@ -371,24 +531,35 @@ std::string td::ClickableMenu::onMouseClick() {
 
 /* SpriteSheet */
 
-// Constructor
+/**
+ * @brief SpriteSheet class constructor. Default, no parameters.
+ */
 td::SpriteSheet::SpriteSheet() = default;
-// Destructor
+/**
+ * @brief SpriteSheet class destructor. Frees each sprite's texture pointer.
+ */
 td::SpriteSheet::~SpriteSheet() {
     for (auto const& key_val : this->mapping) {
         delete key_val.second.getTexture();
     }
 }
 
-// Add a sprite to the sprite sheet
-// Creates a sprite with the given texture and maps it to the given ID
+/**
+ * @brief Add a sprite to the sprite sheet. Creates a sprite with the given color and maps it to the given ID.
+ * @param id A char ID that uniquely identifies this sprite from the others in the sheet.
+ * @param color The sprite's color (if the sprite has no texture, see also td::SpriteSheet::addTexture).
+ */
 void td::SpriteSheet::addSprite(char id, sf::Color color) {
     sf::RectangleShape rect = sf::RectangleShape();
     rect.setFillColor(color);
     this->mapping[id] = rect;
 }
 
-// Add a sprite texture
+/**
+ * @brief Add a sprite to the sprite sheet. Creates a sprite with the given texture and maps it to the given ID.
+ * @param id A char ID that uniquely identifies this sprite from the others in the sheet.
+ * @param file The sprite's texture. This takes precedence over any color given previously.
+ */
 void td::SpriteSheet::addTexture(char id, const std::string& file) {
     auto* texture = new sf::Texture();
     if (!texture->loadFromFile(file)) {
@@ -403,25 +574,43 @@ void td::SpriteSheet::addTexture(char id, const std::string& file) {
 
 /* Tile */
 
-// Constructor
+/**
+ * @brief Tile class constructor. Default, no parameters.
+ */
 td::Tile::Tile() = default;
-// Destructor
-td::Tile::~Tile() = default;
-
-// Constructor + params
+/**
+ * @brief Tile class constructor.
+ * @param sprite_id The char ID for the tile's sprite appearance.
+ * @param type_id The char ID for the tile's functionality and behavior.
+ * @param row The tile's row.
+ * @param col The tile's column.
+ */
 td::Tile::Tile(char sprite_id, char type_id, int row, int col) {
     this->sprite_id = sprite_id;
     this->type_id = type_id;
     this->row = row;
     this->col = col;
 }
+/**
+ * @brief Tile class destructor.
+ */
+td::Tile::~Tile() = default;
 
-// Get the tile's rectangle object
+/**
+ * @brief Get the tile's rectangle object.
+ * @param tile_size The tile size to use when calculating the bounds of the tile's rectangle object.
+ * @return A RectangleShape that represents the bounds of the tile.
+ */
 sf::RectangleShape td::Tile::getRect(int tile_size) const {
     return td::Shapes::rect((float)(tile_size * this->col), (float)(tile_size * this->row), tile_size, tile_size);
 }
 
-// Get the tile's sprite
+/**
+ * @brief Get the tile's drawable sprite object.
+ * @param sprite_sheet The sprite sheet to use when interpreting the tile's sprite ID.
+ * @param tile_size The tile size to use when getting the tile's bounding rectangle.
+ * @return The RectangleShape that underlies the tile's sprite.
+ */
 sf::RectangleShape td::Tile::getSprite(td::SpriteSheet& sprite_sheet, int tile_size) const {
     sf::RectangleShape t = this->getRect(tile_size);
     // If the tile's sprite ID is mapped to a sprite, draw it
@@ -440,7 +629,11 @@ sf::RectangleShape td::Tile::getSprite(td::SpriteSheet& sprite_sheet, int tile_s
     return t;
 }
 
-// Get the x and y locations of the tile
+/**
+ * @brief Get the x and y locations of the tile. Translates the tile's row and column to absolute x and y positioning.
+ * @param tile_size The tile size to use when calculating the x and y coordinates.
+ * @return A Vector2i of the tile's x and y position.
+ */
 sf::Vector2i td::Tile::getPosition(int tile_size) const {
     return {this->col * tile_size, this->row * tile_size};
 }
@@ -449,20 +642,29 @@ sf::Vector2i td::Tile::getPosition(int tile_size) const {
 
 /* Map */
 
-// Constructor
+/**
+ * @brief Map class constructor. Default, no parameters.
+ */
 td::Map::Map() {
     this->initVariables();
 }
-// Destructor
-td::Map::~Map() = default;
-
-// Constructor + params
+/**
+ * @brief Map class constructor.
+ * @param path The string path to a map file txt.
+ */
 td::Map::Map(const std::string& path) {
     this->initVariables();
     this->readMap(path);
 }
+/**
+ * @brief Map class destructor.
+ */
+td::Map::~Map() = default;
 
-// Initialize map attributes
+/**
+ * @brief Initialize map attributes to defaults.
+ * Defines a default mapping of certain chars to tile types.
+ */
 void td::Map::initVariables() {
     this->tile_size = td::Tile::DEFAULT_TILE_SIZE;
     this->max_allowed_tile_size = 1000;
@@ -480,7 +682,11 @@ void td::Map::initVariables() {
     this->items = std::vector<td::Item*>();
 }
 
-// Read in a file path for the game map and translate it to a 2D vector
+/**
+ * @brief Read in a file path for the game map txt and translate it to a 2D vector of Tile objects.
+ * Effectively creates a tile grid out of the txt file.
+ * @param path The string path to a map file txt.
+ */
 void td::Map::readMap(const std::string &path) {
     // Read in a file
     std::ifstream mapFile;
@@ -520,7 +726,10 @@ void td::Map::readMap(const std::string &path) {
     mapFile.close();
 }
 
-// Display the map in the game window
+/**
+ * @brief Display the map in the game window.
+ * @param target An SFML RenderTarget on which to draw the map.
+ */
 void td::Map::draw(sf::RenderTarget* target) {
     for (const auto& row : this->map) {
         for (const auto& tile : row) {
@@ -530,47 +739,76 @@ void td::Map::draw(sf::RenderTarget* target) {
     }
 }
 
-// Display the map's enemies
+/**
+ * @brief Display the map's enemies.
+ * @param target An SFML RenderTarget.
+ */
 void td::Map::drawEnemies(sf::RenderTarget *target) {
     for (auto& enemy: this->enemies) {
         enemy->draw(target);
     }
 }
 
+/**
+ * @brief Display the map's items.
+ * @param target An SFML RenderTarget.
+ */
 void td::Map::drawItems(sf::RenderTarget *target) {
     for (auto item: this->items) {
         item->draw(target);
     }
 }
 
-// Get the tile size
+/**
+ * Get the tile size being used by the map.
+ * @return Int tile size.
+ */
 int td::Map::getTileSize() const {
     return this->tile_size;
 }
 
-// Retrieve the tile at a given x and y location
+/**
+ * @brief Retrieve the tile at a given x and y location.
+ * @param x The tile's x position.
+ * @param y The tile's y position.
+ * @return The tile at the x any y location.
+ */
 td::Tile td::Map::getTile(float x, float y) {
     int r = (int)(y/(float)this->tile_size);
     int c = (int)(x/(float)this->tile_size);
     return this->map[r][c];
 }
 
-// Return a copy of the map
+/**
+ * @brief Return a copy of the map.
+ * @return A copy of the working Map object.
+ */
 std::vector<std::vector<td::Tile>> td::Map::getMap() {
     return this->map;
 }
 
-// Get the char tile type_id from an integer tile type
+/**
+ * @brief Get the char tile type_ids from an integer tile type.
+ * @param type Integer tile type, likely specified from an enumeration (the td::Map::TileTypes enum).
+ * @return A vector of the corresponding tile type chars.
+ */
 std::vector<char> td::Map::getTileType(int type) {
     return this->tile_types[type];
 }
 
-// Get player starting row and column
+/**
+ * @brief Get player starting row and column.
+ * @return The player's starting tile, as specified in the loaded in map file.
+ */
 td::Tile td::Map::getPlayerStartTile() {
     return this->map[this->player_start_row][this->player_start_col];
 }
 
-// Get map size, in pixels by default, or by rows and columns if 'true' passed
+/**
+ * @brief Get map size. In pixels by default.
+ * @param rows_cols Boolean to overwrite the default and instead return the map's number of rows and columns.
+ * @return The map's size in pixels, or in number of rows can columns depending on the value of rows_cols.
+ */
 sf::Vector2i td::Map::getMapSize(bool rows_cols) {
     int num_rows = this->map.size();
     int num_cols = this->map[0].size();
@@ -580,22 +818,34 @@ sf::Vector2i td::Map::getMapSize(bool rows_cols) {
         return {num_cols * this->tile_size, num_rows * this->tile_size};
 }
 
-// Get the map's enemies
+/**
+ * @brief Get the map's enemies.
+ * @return A vector of pointers to the maps' Enemy objects.
+ */
 std::vector<td::Enemy*>* td::Map::getEnemies() {
     return &this->enemies;
 }
 
-// Get the map's items
+/**
+ * @brief Get the map's items.
+ * @return A vector of pointers to the maps' Item objects.
+ */
 std::vector<td::Item*>* td::Map::getItems() {
     return &this->items;
 }
 
-// Set the map's sprite sheet, used to determine what to draw at each tile
+/**
+ * @brief Set the map's sprite sheet, which is used to determine what to draw at each tile.
+ * @param sheet The sprite sheet to use.
+ */
 void td::Map::setSpriteSheet(const td::SpriteSheet& sheet) {
     this->sprite_sheet = sheet;
 }
 
-// Set the size of the map tiles, in pixels
+/**
+ * @brief Set the size of the map tiles, in pixels.
+ * @param size The desired tile size.
+ */
 void td::Map::setTileSize(int size) {
     if (size < 0 || size > this->max_allowed_tile_size) {
         throw std::invalid_argument("Invalid tile size.");
@@ -603,51 +853,80 @@ void td::Map::setTileSize(int size) {
     this->tile_size = size;
 }
 
-// Set a special tile type, whether by overwriting a default one or creating a new one
+/**
+ * @brief Set a special tile type, whether by overwriting a default one or creating a new one.
+ * @param type Integer tile type, likely specified from an enumeration (the td::Map::TileTypes enum).
+ * @param type_ids A vector of chars that correspond to the integer type.
+ */
 void td::Map::setTileType(int type, std::vector<char> type_ids) {
     this->tile_types[type] = std::move(type_ids);
 }
 
-// Add an enemy to the map
+/**
+ * @brief Add an enemy to the map.
+ * @param enemy A pointer to the Enemy object to add.
+ */
 void td::Map::addEnemy(td::Enemy* enemy) {
     this->enemies.emplace_back(enemy);
 }
 
-// Move all enemies
+/**
+ * @brief Move all enemies according to their waypoints.
+ * @param elapsed The time elapsed between this frame and the last.
+ */
 void td::Map::moveEnemies(float elapsed) {
     for (auto enemy : this->enemies) {
         enemy->move(elapsed);
     }
 }
 
-// Reset all enemies to their starting locations
+/**
+ * @brief Reset all enemies to their starting locations.
+ */
 void td::Map::resetEnemies() {
     for (auto enemy : this->enemies) {
         enemy->reset();
     }
 }
 
-// Add an item to the map
+/**
+ * @brief Add an item to the map.
+ * @param item A pointer to the Item object to add.
+ */
 void td::Map::addItem(td::Item* item) {
     this->items.emplace_back(item);
 }
 
-// Reset all items to be un-obtained
+/**
+ * @brief Reset all items to be un-obtained.
+ */
 void td::Map::resetItems() {
     for (auto item : this->items) {
         item->reset();
     }
 }
 
-// Checks if the player is colliding with any tiles of a certain type
+/**
+ * @brief Checks if the player is colliding with any tiles of a certain type. Uses td::Map::getCollisions.
+ * @param map The map on which to test for collision.
+ * @param type_ids The type IDs of tiles to watch out for when checking for player collision.
+ * @param rect The player's bounding rectangle.
+ * @return Boolean of whether or not a collision was detected. True = collision, False = no collision.
+ */
 bool td::Map::collides(td::Map& map, const std::vector<char>& type_ids, const sf::RectangleShape& rect) {
     return !td::Map::getCollisions(map, type_ids, rect).empty();
 }
 
-// Get all tiles of certain types that the player is colliding with.
-// Look at all tiles around a given location (x,y) and check if the current location
-//  intersects with any surrounding tiles of a specific type.
-// Looks in a 3x3 tile grid around the location given, with center at the location's top-left corner tile
+/**
+ * @brief Get all tiles of certain types that the player is colliding with.
+ * Look at all tiles around a given location (x,y) and check if the current location
+ * intersects with any surrounding tiles of a specific type.
+ * Looks in an n x n tile grid around the location given, where n depends on the size of the player.
+ * @param map The map on which to test for collision.
+ * @param type_ids The type IDs of tiles to watch out for when checking for player collision.
+ * @param rect The player's bounding rectangle.
+ * @return A vector of tiles (of the correct type) that were found to be colliding with the player.
+ */
 std::vector<td::Tile>
 td::Map::getCollisions(td::Map &map, const std::vector<char> &type_ids, const sf::RectangleShape &rect) {
     std::vector<td::Tile> tiles = std::vector<td::Tile>();
@@ -678,9 +957,12 @@ td::Map::getCollisions(td::Map &map, const std::vector<char> &type_ids, const sf
 }
 //------------------------------------------------------------------------------------------------------------------
 
+
 /* RenderObject */
 
-// Constructor/destructor
+/**
+ * @brief RenderObject class constructor.
+ */
 td::RenderObject::RenderObject() {
     // Position
     this->x = 0;
@@ -697,49 +979,76 @@ td::RenderObject::RenderObject() {
     // Render
     this->drawable = td::Shapes::rect(this->x, this->y,this->width, this->height);
 }
+/**
+ * @brief RenderObject class destructor.
+ */
 td::RenderObject::~RenderObject() {
     delete this->texture;
 }
 
-// Set the map that the player will roam around
+/**
+ * @brief Set the map that the player will roam around.
+ * @param m A Map instance.
+ */
 void td::RenderObject::setMap(td::Map &m) {
     this->map = m;
 }
 
-// Get the player's position
-// Optionally set 'center' to true to get the position from the player's center
+/**
+ * @brief Get the objects's position. Optionally set 'center' to true to get the position from the objects's center.
+ * @param center Boolean to set whether the objects's position should be calculated from the objects's center.
+ * True = from center, False = from top-left corner.
+ * @return A Vector2f of the objects's x and y coordinates.
+ */
 sf::Vector2f td::RenderObject::getPosition(bool center) const {
     if (center)
         return {this->x + ((float)this->width/2), this->y + ((float)this->height/2)};
     return {this->x, this->y};
 }
 
-// Set starting position, x and y
+/**
+ * @brief Set the objects's starting position, x and y.
+ * @param start_x Starting x position.
+ * @param start_y Starting y position.
+ */
 void td::RenderObject::setStartPosition(float start_x, float start_y) {
     this->x = start_x;
     this->y = start_y;
 }
 
-// Set starting position, row and col
+/**
+ * @brief Set starting position by row and column. The row and col values are translated to absolute x and y.
+ * @param row Starting row.
+ * @param col Starting column.
+ */
 void td::RenderObject::setStartTile(int row, int col) {
     this->x = (float)(col * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->width)/2);
     this->y = (float)(row * this->map.getTileSize()) + ((float)(this->map.getTileSize()-this->height)/2);
 }
 
-// Draw the player
+/**
+ * @brief Draw the object.
+ * @param target An SFML RenderTarget on which to draw the object.
+ */
 void td::RenderObject::draw(sf::RenderTarget* target) {
     this->drawable.setPosition(sf::Vector2f(this->x, this->y));
     this->drawable.setSize(sf::Vector2f(this->width, this->height));
     target->draw(this->drawable);
 }
 
-// Set the player's color
+/**
+ * @brief Set the object's color.
+ * @param c The desired color.
+ */
 void td::RenderObject::setColor(sf::Color c) {
     this->color = c;
     this->drawable.setFillColor(c);
 }
 
-// Set the player's sprite texture
+/**
+ * @brief Set the objects's texture. Will take precedence over any object color specified previously.
+ * @param file The string path to a texture file.
+ */
 void td::RenderObject::setTexture(const std::string& file) {
     auto* player_texture = new sf::Texture();
     if (!player_texture->loadFromFile(file)) {
@@ -749,12 +1058,21 @@ void td::RenderObject::setTexture(const std::string& file) {
     this->drawable.setTexture(player_texture);
 }
 
-// Get the player's width and height
+/**
+ * @brief Get the object's width and height.
+ * @return A td::Util::size instance of the object's size.
+ */
 td::Util::size td::RenderObject::getSize() const {
     return {this->width, this->height};
 }
 
-// Set the player's width and height
+/**
+ * @brief Set the object's width and height.
+ * @param w The object's desired width.
+ * @param h The object's desired height.
+ * @param center_in_tile Boolean to determine whether to re-draw the object in the middle of the object's current tile.
+ * True = re-center the object, False = leave as is.
+ */
 void td::RenderObject::setSize(int w, int h, bool center_in_tile) {
     this->width = w;
     this->height = h;

@@ -137,13 +137,13 @@ void Game::initView() {
 
 // Initialize the player
 void Game::initPlayer() {
-    this->player = Player();
-    this->player.p.setMap(this->current_map);
-    this->player.p.setSize((int)(this->tile_size*0.8), (int)(this->tile_size*0.8), true);
-    this->player.p.setMovementKeys(sf::Keyboard::W,sf::Keyboard::A,
+    this->player = td::Player();
+    this->player.setMap(this->current_map);
+    this->player.setSize((int)(this->tile_size*0.8), (int)(this->tile_size*0.8), true);
+    this->player.setMovementKeys(sf::Keyboard::W,sf::Keyboard::A,
                                    sf::Keyboard::S, sf::Keyboard::D);
-    this->player.p.setMoveSpeed(30);
-    this->player.p.setTexture("../assets/textures/player.png");
+    this->player.setMoveSpeed(30);
+    this->player.setTexture("../assets/textures/player.png");
 }
 
 
@@ -214,17 +214,17 @@ void Game::update() {
     // Respawn the player after a pause
     if (this->respawnPlayer) {
         this->respawnPlayer = false;
-        this->player.p.respawn();
+        this->player.respawn();
     }
 
     // Handle player movement
-    this->player.p.move(this->elapsed);
+    this->player.move(this->elapsed);
 
-    if (this->player.p.onCheckpoint()) {
-        this->player.p.setCheckpoint();
+    if (this->player.onCheckpoint()) {
+        this->player.setCheckpoint();
         // Commit all items in the player's inventory
         // This way, it's a true checkpoint
-        for (auto item : this->player.p.getInventory()) {
+        for (auto item : this->player.getInventory()) {
             item->setCommitted(true);
         }
     }
@@ -233,33 +233,33 @@ void Game::update() {
     this->current_map.moveEnemies(this->elapsed);
 
     // Handle enemy collision. It's important that the enemies have moved before this point
-    if (this->player.p.isTouchingCircleEnemy()) {
-        for (auto enemy: this->player.p.getTouchingCircleEnemies()) {
-            this->player.p.loseHealth(enemy->getHarm());
+    if (this->player.isTouchingCircleEnemy()) {
+        for (auto enemy: this->player.getTouchingCircleEnemies()) {
+            this->player.loseHealth(enemy->getHarm());
         }
     }
 
     // Handle item collision
-    if (this->player.p.isTouchingItem()) {
-        for (auto item: this->player.p.getTouchingItems()) {
-            this->player.p.obtainItem(item);
+    if (this->player.isTouchingItem()) {
+        for (auto item: this->player.getTouchingItems()) {
+            this->player.obtainItem(item);
         }
     }
 
     // Respawn if player is dead
-    if (this->player.p.isDead()) {
+    if (this->player.isDead()) {
         this->numDeaths++;
         // Clear any un-committed items from the player's inventory
-        this->player.p.clearInventory();
+        this->player.clearInventory();
 
         this->hitEnemySound->play();
         this->pauseRespawn();
     }
 
     // Check if the player has reached the end goal
-    if (this->player.p.onEnd()) {
+    if (this->player.onEnd()) {
         // Don't advance to the next map if the player hasn't collected all the map's coins
-        if (this->player.p.getInventory().size() == this->current_map.getItems()->size()) {
+        if (this->player.getInventory().size() == this->current_map.getItems()->size()) {
             this->map_index++;
             if (this->map_index >= this->maps.size()) {
                 this->state = State::WIN;
@@ -314,7 +314,7 @@ void Game::render() {
     this->drawHUD();
 
     // Render the player
-    this->player.p.draw(this->window);
+    this->player.draw(this->window);
 
     // Render items
     this->current_map.drawItems(this->window);
@@ -396,8 +396,8 @@ void Game::loadMap(int map_idx) {
     this->current_map = this->maps[map_idx];
 
     // Configure player to use the new map
-    this->player.p.setMap(this->current_map);
-    this->player.p.resetInventory();
+    this->player.setMap(this->current_map);
+    this->player.resetInventory();
 
     // Reset map items
     this->current_map.resetEnemies();
@@ -510,7 +510,7 @@ void Game::drawWinScreen() {
     this->window->clear(sf::Color::White);
     this->titleScreenBackground.draw(this->window);
 
-    td::Text::print(this->window, "YOU WIN!", {.font=this->capsFont, .y=100, .size=120, .align=td::Text::Align::CENTER, .color=sf::Color::Blue});
+    td::Text::print(this->window, "YOU WIN!", {.font=this->capsFont, .y=100, .size=120, .align=td::Text::Align::CENTER, .color=sf::Color(70, 134, 188)});
     td::Text::print(this->window, "Now try it with your eyes closed.", {.font=this->capsFont, .y=250, .size=50, .align=td::Text::Align::CENTER, .color=sf::Color::Black});
 
     std::stringstream ss;
