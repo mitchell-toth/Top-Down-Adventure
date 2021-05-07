@@ -1048,9 +1048,11 @@ void td::RenderObject::draw(sf::RenderTarget* target) {
 /**
  * @brief Draw the checkpoint mark.
  * @param target An SFML RenderTarget on which to draw the checkpoint mark.
+ * @param cp_x Checkpoint x position.
+ * @param cp_y Checkpoint y position.
  */
-void td::RenderObject::drawCP(sf::RenderTarget* target, int x, int y) {
-    this->CPdrawable.setPosition(sf::Vector2f(x * this->map.getTileSize(), y * this->map.getTileSize()));
+void td::RenderObject::drawCP(sf::RenderTarget* target, int cp_x, int cp_y) {
+    this->CPdrawable.setPosition(sf::Vector2f((float)cp_x * (float)this->map.getTileSize(), (float)cp_y * (float)this->map.getTileSize()));
     this->CPdrawable.setSize(sf::Vector2f(this->map.getTileSize(), this->map.getTileSize()));
     target->draw(this->CPdrawable);
 }
@@ -1058,16 +1060,19 @@ void td::RenderObject::drawCP(sf::RenderTarget* target, int x, int y) {
 /**
  * @brief Draw the file image.
  * @param target An SFML RenderTarget on which to draw the file image.
+ * @param img_x The image's x position.
+ * @param img_y The image's y position.
+ * @param file The string path to an image file.
  */
-void td::RenderObject::drawFileImage(sf::RenderTarget* target, int x, int y, const std::string& file) {
+void td::RenderObject::drawFileImage(sf::RenderTarget* target, int img_x, int img_y, const std::string& file) {
     sf::RectangleShape fileImage;
     fileImage.setSize(sf::Vector2f(this->map.getTileSize(), this->map.getTileSize()));
-    fileImage.setPosition(sf::Vector2f(y * this->map.getTileSize(), x * this->map.getTileSize()));
-    auto* texture = new sf::Texture();
-    if (!texture->loadFromFile(file)) {
+    fileImage.setPosition(sf::Vector2f(img_y * this->map.getTileSize(), img_x * this->map.getTileSize()));
+    auto* image = new sf::Texture();
+    if (!image->loadFromFile(file)) {
         throw std::invalid_argument("Could not load texture at path " + file);
     }
-    fileImage.setTexture(texture);
+    fileImage.setTexture(image);
     target->draw(fileImage);
 }
 
