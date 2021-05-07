@@ -720,6 +720,9 @@ void td::Map::readMap(const std::string &path) {
                 this->player_start_col = (int)c/2;
                 start_tile_set = true;
             }
+            if (td::Util::find(this->getTileType(td::Map::TileTypes::CHECKPOINT), type_id) != -1) {
+                this->checkpointList.emplace_back(r,c/2);
+            }
 
             this->map[r].emplace_back(tile);
         }
@@ -978,9 +981,11 @@ td::RenderObject::RenderObject() {
     // Color
     this->color = sf::Color::White;
     this->texture = nullptr;
+    this->CPTexture = nullptr;
 
     // Render
     this->drawable = td::Shapes::rect(this->x, this->y,this->width, this->height);
+    this->CPdrawable = td::Shapes::rect(this->x, this->y,this->width, this->height);
 }
 /**
  * @brief RenderObject class destructor.
@@ -1038,6 +1043,32 @@ void td::RenderObject::draw(sf::RenderTarget* target) {
     this->drawable.setPosition(sf::Vector2f(this->x, this->y));
     this->drawable.setSize(sf::Vector2f(this->width, this->height));
     target->draw(this->drawable);
+}
+
+/**
+ * @brief Draw the checkpoint mark.
+ * @param target An SFML RenderTarget on which to draw the checkpoint mark.
+ */
+void td::RenderObject::drawCP(sf::RenderTarget* target, int x, int y) {
+    this->CPdrawable.setPosition(sf::Vector2f(x * this->map.getTileSize(), y * this->map.getTileSize()));
+    this->CPdrawable.setSize(sf::Vector2f(this->map.getTileSize(), this->map.getTileSize()));
+    target->draw(this->CPdrawable);
+}
+
+/**
+ * @brief Draw the file image.
+ * @param target An SFML RenderTarget on which to draw the file image.
+ */
+void td::RenderObject::drawFileImage(sf::RenderTarget* target, int x, int y, const std::string& file) {
+    sf::RectangleShape fileImage;
+    fileImage.setSize(sf::Vector2f(this->map.getTileSize(), this->map.getTileSize()));
+    fileImage.setPosition(sf::Vector2f(y * this->map.getTileSize(), x * this->map.getTileSize()));
+    auto* texture = new sf::Texture();
+    if (!texture->loadFromFile(file)) {
+        throw std::invalid_argument("Could not load texture at path " + file);
+    }
+    fileImage.setTexture(texture);
+    target->draw(fileImage);
 }
 
 /**
@@ -1251,6 +1282,14 @@ void td::Player::setCheckpoint() {
     else {
         this->checkpoint = this->map.getTile(this->x, this->y);
     }
+}
+
+
+/**
+ * @brief Returns the current checkpoint tile.
+ */
+td::Tile td::Player::getCheckpoint() {
+    return this->checkpoint;
 }
 
 /**

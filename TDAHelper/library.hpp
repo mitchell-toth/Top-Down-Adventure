@@ -307,6 +307,7 @@ namespace td {
 
         // Read in the map
         void readMap(const std::string& path);
+        std::vector<sf::Vector2f> checkpointList;
 
         // Render
         void draw(sf::RenderTarget* target);
@@ -382,8 +383,11 @@ namespace td {
 
         // Render
         virtual void draw(sf::RenderTarget* target);
+        virtual void drawCP(sf::RenderTarget* target, int x, int y);
+        virtual void drawFileImage(sf::RenderTarget* target, int x, int y, const std::string& file);
         void setColor(sf::Color c);
         void setTexture(const std::string& file);
+        void setCPTexture(const std::string& file);
 
         // Size
         td::Util::size getSize() const;
@@ -436,6 +440,7 @@ namespace td {
         // Checkpoints
         bool onCheckpoint();
         void setCheckpoint();
+        td::Tile getCheckpoint();
 
         // End tiles
         bool onEnd();
