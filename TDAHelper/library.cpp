@@ -117,7 +117,7 @@ td::Music::Music(const std::string &path, bool loop, float volume, float pitch) 
     this->music.setPitch(pitch);
 }
 /**
- * Music class destructor.
+ * @brief Music class destructor.
  */
 td::Music::~Music() = default;
 
@@ -140,7 +140,7 @@ void td::Music::stop() {
 /* Sound */
 
 /**
- * Sound class constructor. Default, no parameters.
+ * @brief Sound class constructor. Default, no parameters.
  */
 td::Sound::Sound() = default;
 /**
@@ -157,7 +157,7 @@ td::Sound::Sound(const std::string &path, float volume, float pitch) {
     this->sound.setPitch(pitch);
 }
 /**
- * Sound class destructor.
+ * @brief Sound class destructor.
  */
 td::Sound::~Sound() = default;
 
@@ -270,12 +270,12 @@ td::ClickableMenu::ClickableMenu(sf::RenderWindow* target, float start_x, float 
     this->createOnHoverRectangles();
 }
 /**
- * ClickableMenu class destructor.
+ * @brief ClickableMenu class destructor.
  */
 td::ClickableMenu::~ClickableMenu() = default;
 
 /**
- * @brief Intitialize the class attributes to default values.
+ * @brief Initialize the class attributes to default values.
  */
 void td::ClickableMenu::initVariables() {
     this->x = 0;
@@ -685,6 +685,8 @@ void td::Map::initVariables() {
 /**
  * @brief Read in a file path for the game map txt and translate it to a 2D vector of Tile objects.
  * Effectively creates a tile grid out of the txt file.
+ * Reads in the map two characters at a time, where the first char is interpreted as a sprite_id and the second
+ * is interpreted as a type_id. The sprite_id governs appearance, and the type_id governs functionality.
  * @param path The string path to a map file txt.
  */
 void td::Map::readMap(const std::string &path) {
@@ -760,7 +762,7 @@ void td::Map::drawItems(sf::RenderTarget *target) {
 }
 
 /**
- * Get the tile size being used by the map.
+ * @brief Get the tile size being used by the map.
  * @return Int tile size.
  */
 int td::Map::getTileSize() const {
@@ -807,6 +809,7 @@ td::Tile td::Map::getPlayerStartTile() {
 /**
  * @brief Get map size. In pixels by default.
  * @param rows_cols Boolean to overwrite the default and instead return the map's number of rows and columns.
+ * Default value: false.
  * @return The map's size in pixels, or in number of rows can columns depending on the value of rows_cols.
  */
 sf::Vector2i td::Map::getMapSize(bool rows_cols) {
@@ -998,6 +1001,7 @@ void td::RenderObject::setMap(td::Map &m) {
  * @brief Get the objects's position. Optionally set 'center' to true to get the position from the objects's center.
  * @param center Boolean to set whether the objects's position should be calculated from the objects's center.
  * True = from center, False = from top-left corner.
+ * Default value: false.
  * @return A Vector2f of the objects's x and y coordinates.
  */
 sf::Vector2f td::RenderObject::getPosition(bool center) const {
@@ -1072,6 +1076,7 @@ td::Util::size td::RenderObject::getSize() const {
  * @param h The object's desired height.
  * @param center_in_tile Boolean to determine whether to re-draw the object in the middle of the object's current tile.
  * True = re-center the object, False = leave as is.
+ * Default value: false.
  */
 void td::RenderObject::setSize(int w, int h, bool center_in_tile) {
     this->width = w;
@@ -1088,7 +1093,9 @@ void td::RenderObject::setSize(int w, int h, bool center_in_tile) {
 
 /* Player */
 
-// Constructor
+/**
+ * @brief Player class constructor.
+ */
 td::Player::Player() {
     // Position
     this->x = 0;
@@ -1114,19 +1121,27 @@ td::Player::Player() {
     this->inventory = std::vector<td::Item*>();
     this->checkpoint = td::Tile('0', this->map.getTileType(td::Map::TileTypes::CHECKPOINT).front(), 0, 0);
 }
-// Destructor
+/**
+ * @brief Player class destructor.
+ */
 td::Player::~Player() = default;
 
-// Set the map that the player will roam around
+/**
+ * @brief Set the map that the player will roam around.
+ * Overrides the RenderObject setMap() to add extra functionality such as setup and spawning.
+ * @param m A td::Map instance.
+ */
 void td::Player::setMap(td::Map &m) {
     this->map = m;
     this->checkpoint = m.getPlayerStartTile();
     this->spawn();
 }
 
-// Listen for player movement
-// Upon correct key presses, update the player's position
-// Passed a time delta to ensure consistent speeds across all fps values
+/**
+ * @brief Listen for player movement. Upon correct key presses, update the player's position.
+ * @param elapsed The time delta from the last frame to this one.
+ * Ensures consistent movement speeds across all fps values.
+ */
 void td::Player::move(float elapsed) {
     float new_x = this->x;
     float new_y = this->y;
@@ -1165,7 +1180,13 @@ void td::Player::move(float elapsed) {
     this->y = new_y;
 }
 
-// Alter the default player movement keys
+/**
+ * @brief Alter the default player movement keys.
+ * @param up Desired Up key.
+ * @param left Desired Left key.
+ * @param down Desired Down key.
+ * @param right Desired Right key.
+ */
 void td::Player::setMovementKeys(sf::Keyboard::Key up, sf::Keyboard::Key left, sf::Keyboard::Key down,
                                  sf::Keyboard::Key right) {
     this->up_key = up;
@@ -1174,13 +1195,18 @@ void td::Player::setMovementKeys(sf::Keyboard::Key up, sf::Keyboard::Key left, s
     this->right_key = right;
 }
 
-// Set the player's speed
+/**
+ * @brief Set the player's speed.
+ * @param move_speed Float speed.
+ */
 void td::Player::setMoveSpeed(float move_speed) {
     this->speed = move_speed * ((float)this->map.getTileSize()/8);
 }
 
-// Set the player's position according to the starting point specified on the map
-// To be called at the start of a level
+/**
+ * @brief Set the player's position according to the starting point specified on the map.
+ * This can be called at the start of a level to position the player at the map's start.
+ */
 void td::Player::spawn() {
     this->health = this->max_health;
     td::Tile tile = this->map.getPlayerStartTile();
@@ -1189,7 +1215,10 @@ void td::Player::spawn() {
     this->y = pos.y + ((float)(this->map.getTileSize()-this->height)/2);
 }
 
-// Set the player's position according to the latest checkpoint the player reached
+/**
+ * @brief Set the player's position according to the latest checkpoint the player reached.
+ * Like spawn, but looks at checkpoints and does not necessarily position the player at the map's start.
+ */
 void td::Player::respawn() {
     this->health = this->max_health;
     sf::Vector2i pos = this->checkpoint.getPosition(this->map.getTileSize());
@@ -1197,17 +1226,22 @@ void td::Player::respawn() {
     this->y = pos.y + ((float)(this->map.getTileSize()-this->height)/2);
 }
 
-// Check if the player is currently colliding with a checkpoint tile
+/**
+ * @brief Check if the player is currently colliding with a checkpoint tile.
+ * @return Boolean. True = player is currently on a checkpoint tile, False = player is not on a checkpoint tile.
+ */
 bool td::Player::onCheckpoint() {
     sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
     return td::Map::collides(this->map, this->map.getTileType(td::Map::TileTypes::CHECKPOINT), p_rect);
 }
 
-// Check if the player is currently colliding with a checkpoint tile.
-// Looks around for a checkpoint tile that the player is touching.
-//  If it finds one, it sets the player's checkpoint variable to that tile.
-//  If not, it sets the player's checkpoint tile at the current tile.
-// Supports both formal checkpoints and informal save points.
+/**
+ * @brief Check if the player is currently colliding with a checkpoint tile.
+ * Looks around for a checkpoint tile that the player is touching.
+ * If it finds one, it sets the player's checkpoint variable to that tile.
+ * If not, it sets the player's checkpoint tile at the current tile.
+ * It thus supports both formal checkpoints and informal save points.
+ */
 void td::Player::setCheckpoint() {
     sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
     std::vector<td::Tile> checkpoints = td::Map::getCollisions(this->map, this->map.getTileType(td::Map::TileTypes::CHECKPOINT), p_rect);
@@ -1219,18 +1253,28 @@ void td::Player::setCheckpoint() {
     }
 }
 
-// Check if the player is currently colliding with an end tile
+/**
+ * @brief Check if the player is currently colliding with an end tile.
+ * @return Boolean. True = player is currently on an end tile, False = player is not on an end tile.
+ */
 bool td::Player::onEnd() {
     sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
     return td::Map::collides(this->map, this->map.getTileType(td::Map::TileTypes::END), p_rect);
 }
 
-// Check if the player is currently colliding with an enemy
+/**
+ * @brief Check if the player is currently colliding with an enemy. Uses td::Player::getTouchingEnemies.
+ * @return Boolean. True = player is currently colliding with an enemy, False = player is not touching an enemy.
+ */
 bool td::Player::isTouchingEnemy() {
     return !this->getTouchingEnemies().empty();
 }
 
-// Get the enemies that the player is touching
+/**
+ * @brief Get the enemies that the player is touching.
+ * Iterates over each enemy and checks if its bounding box is overlapping that of the player.
+ * @return A vector of pointers to all enemies the player is currently colliding with.
+ */
 std::vector<td::Enemy*> td::Player::getTouchingEnemies() {
     std::vector<td::Enemy*> touching_enemies = std::vector<td::Enemy*>();
 
@@ -1245,13 +1289,20 @@ std::vector<td::Enemy*> td::Player::getTouchingEnemies() {
     return touching_enemies;
 }
 
-// isTouchingEnemy(), with circles
+/**
+ * @brief Additional implementation of td::Player::isTouchingEnemy(), just now with circles.
+ * @return Boolean. True = player is currently colliding with an enemy, False = player is not touching an enemy.
+ */
 bool td::Player::isTouchingCircleEnemy() {
     return !this->getTouchingCircleEnemies().empty();
 }
 
-// getTouchingEnemies(), with circles
-// Treats each enemy as a circle object
+/**
+ * @brief Additional implementation of td::Player::getTouchingEnemies(), just now with circles.
+ * Treats each enemy as a circle object instead of a rectangle.
+ * This is especially useful when the texture on an enemy makes it look circular.
+ * @return A vector of pointers to all enemies the player is currently colliding with.
+ */
 std::vector<td::Enemy*> td::Player::getTouchingCircleEnemies() {
     std::vector<td::Enemy*> touching_enemies = std::vector<td::Enemy*>();
 
@@ -1267,12 +1318,19 @@ std::vector<td::Enemy*> td::Player::getTouchingCircleEnemies() {
     return touching_enemies;
 }
 
-// Check if the player is currently colliding with any un-obtained items
+/**
+ * @brief Check if the player is currently colliding with any un-obtained items. Uses td::Player::getTouchingItems.
+ * @return Boolean. True = player is currently colliding with an un-obtained object, False = player is not.
+ */
 bool td::Player::isTouchingItem() {
     return !this->getTouchingItems().empty();
 }
 
-// Get the items that the player is touching
+/**
+ * @brief Get the items that the player is touching.
+ * Iterates over each item and checks if the item's bounds overlap with that of the player.
+ * @return A vector of pointers to all items the player is currently colliding with.
+ */
 std::vector<td::Item*> td::Player::getTouchingItems() {
     std::vector<td::Item*> touching_items = std::vector<td::Item*>();
 
@@ -1289,20 +1347,27 @@ std::vector<td::Item*> td::Player::getTouchingItems() {
     return touching_items;
 }
 
-// Add an item to the player's inventory.
-// Then set that item's 'obtained' status to true
+/**
+ * @brief Add an item to the player's inventory. Then set that item's 'obtained' status to true.
+ * @param item A pointer to the item that was just obtained by the player.
+ */
 void td::Player::obtainItem(td::Item* item) {
     this->inventory.emplace_back(item);
     item->setObtained(true);
 }
 
-// Get a vector of the player's obtained items
+/**
+ * @brief Get the player's obtained items.
+ * @return A vector of pointers to all items the player has obtained.
+ */
 std::vector<td::Item*> td::Player::getInventory() {
     return this->inventory;
 }
 
-// Clear any un-committed items from the player's inventory.
-// Take care to set each item's state back to un-obtained and un-committed
+/**
+ * @brief Clear any un-committed items from the player's inventory.
+ * Take care to set each item's state back to un-obtained and un-committed.
+ */
 void td::Player::clearInventory() {
     int size = this->inventory.size();
     for (int i=size-1; i>=0; i--) {
@@ -1314,8 +1379,10 @@ void td::Player::clearInventory() {
     }
 }
 
-// Completely clear the player's inventory.
-// Take care to set each item's state back to un-obtained and un-committed
+/**
+ * @brief Completely clear the player's inventory.
+ * Take care to set each item's state back to un-obtained and un-committed.
+ */
 void td::Player::resetInventory() {
     for (auto item : this->inventory) {
         item->setObtained(false);
@@ -1324,32 +1391,50 @@ void td::Player::resetInventory() {
     this->inventory.clear();
 }
 
-// Get the player's health
+/**
+ * @brief Get the player's health.
+ * @return The player's integer health points.
+ */
 int td::Player::getHealth() const {
     return this->health;
 }
 
-// Set the player's health
+/**
+ * @brief Set the player's health.
+ * @param h Health points.
+ */
 void td::Player::setHealth(int h) {
     this->health = h;
 }
 
-// Set the player's maximum health
+/**
+ * @brief Set the player's maximum health.
+ * @param mh Maximum health points.
+ */
 void td::Player::setMaxHealth(int mh) {
     this->max_health = mh;
 }
 
-// Decrement the player's health by a given amount
+/**
+ * @brief Decrement the player's health by a given amount.
+ * @param health_points Health points to decrement by.
+ */
 void td::Player::loseHealth(int health_points) {
     this->health -= health_points;
 }
 
-// Increment the player's health by a given amount
+/**
+ * @brief Increment the player's health by a given amount.
+ * @param health_points Health points to increment by.
+ */
 void td::Player::gainHealth(int health_points) {
     this->health += health_points;
 }
 
-// Player health <= 0
+/**
+ * @brief Check if the player's health has dropped to or below 0.
+ * @return Boolean. True = health is at or below 0, False = the player still has some life.
+ */
 bool td::Player::isDead() const {
     return this->health <= 0;
 }
@@ -1358,7 +1443,9 @@ bool td::Player::isDead() const {
 
 /* Enemy */
 
-// Constructor/destructor
+/**
+ * @brief Enemy class constructor. No parameters.
+ */
 td::Enemy::Enemy() {
     this->harm = 1;
     this->waypoints = {};
@@ -1366,6 +1453,14 @@ td::Enemy::Enemy() {
     this->current_waypoint_index = 0;
     this->direction = 1;
 }
+/**
+ * @brief Enemy class constructor.
+ * @param map The td::Map instance that the enemy will move on and interact with.
+ * @param width Enemy width.
+ * @param height Enemy height.
+ * @param color Enemy fill color.
+ * @param harm The amount of harm the enemy deals when colliding with a Player instance. Default value: 1.
+ */
 td::Enemy::Enemy(const td::Map& map, int width, int height, sf::Color color, int harm) {
     this->map = map;
     this->width = width;
@@ -1377,9 +1472,14 @@ td::Enemy::Enemy(const td::Map& map, int width, int height, sf::Color color, int
     this->current_waypoint_index = 0;
     this->direction = 1;
 }
+/**
+ * @brief Enemy class destructor.
+ */
 td::Enemy::~Enemy() = default;
 
-// Reset the enemy's position to the starting waypoint
+/**
+ * @brief Reset the enemy's position to the starting waypoint.
+ */
 void td::Enemy::reset() {
     if (!this->waypoints.empty()) {
         this->x = this->waypoints[0].x;
@@ -1390,23 +1490,38 @@ void td::Enemy::reset() {
     }
 }
 
-// Set the map that the enemy will be on
-// Overwrites base Player setMap() so that the call to spawn() is omitted
+/**
+ * @brief Set the map that the enemy will be on.
+ * Overwrites base Player setMap() so that the checkpoint setup and call spawn() are omitted.
+ * @param m The td::Map instance that the enemy will move on and interact with.
+ */
 void td::Enemy::setMap(td::Map& m) {
     this->map = m;
 }
 
-// Get the amount of damage that the enemy does
+/**
+ * @brief Get the amount of damage that the enemy deals.
+ * @return Integer damage amount.
+ */
 int td::Enemy::getHarm() const {
     return this->harm;
 };
 
-// Set the amount of damage that the enemy does
+/**
+ * @brief Set the amount of damage that the enemy deals.
+ * @param health_points Number of health points of damage to deal.
+ */
 void td::Enemy::setHarm(int health_points) {
     this->harm = health_points;
 }
 
-// Set the waypoints the enemy should follow when moving
+/**
+ * @brief Set the waypoints the enemy should follow when moving.
+ * @param enemy_waypoints A vector of Vector2f waypoints containing x and y values.
+ * @param tiles Boolean to determine whether to interpret each x and y waypoints as tile rows and columns or not.
+ * True = interpret as rows and columns, False = interpret as absolute x and y.
+ * Default value: true.
+ */
 void td::Enemy::setWaypoints(const std::vector<sf::Vector2f>& enemy_waypoints, bool tiles) {
     std::vector<sf::Vector2f> position_waypoints = enemy_waypoints;
     // If tiles passed in, translate the rows and columns to x and y positions
@@ -1429,16 +1544,32 @@ void td::Enemy::setWaypoints(const std::vector<sf::Vector2f>& enemy_waypoints, b
     }
 }
 
+/**
+ * @brief Set the enemy's waypoint movement option, whether LOOP or BACK_AND_FORTH.
+ * LOOP allows the waypoints to wrap back around, where the first waypoint becomes the last waypoint's target.
+ * BACK_AND_FORTH causes the enemy's direction to reverse when the last (or first) waypoint is reached.
+ * @param enemy_move_option Integer option, likely specified via the td::Enemy::MoveOptions enum.
+ */
 void td::Enemy::setMoveOption(int enemy_move_option) {
     this->move_option = enemy_move_option;
 }
 
-// Update the enemy's first waypoint
+/**
+ * @brief Manually update the enemy's first waypoint.
+ * @param start_x Starting x position.
+ * @param start_y Starting y position.
+ */
 void td::Enemy::setStartPosition(float start_x, float start_y) {
     if (!this->waypoints.empty()) {
         this->waypoints[0] = {start_x, start_y};
     }
 }
+
+/**
+ * @brief Manually update the enemy's first waypoint, using rows and columns.
+ * @param row Starting row.
+ * @param col Starting column.
+ */
 void td::Enemy::setStartTile(int row, int col) {
     if (!this->waypoints.empty()) {
         this->waypoints[0] = {
@@ -1448,7 +1579,11 @@ void td::Enemy::setStartTile(int row, int col) {
     }
 }
 
-// Move the enemy, following a set of waypoints
+/**
+ * @brief Move the enemy, following a set of waypoints.
+ * @param elapsed The time delta from the last frame to this one.
+ * Ensures consistent movement speeds across all fps values.
+ */
 void td::Enemy::move(float elapsed) {
     // If the move option is back and forth, reverse the direction upon reaching the last waypoint
     if (this->move_option == td::Enemy::MoveOptions::BACK_AND_FORTH) {
@@ -1529,11 +1664,20 @@ void td::Enemy::move(float elapsed) {
 
 /* Item */
 
-// Constructor/destructor
+/**
+ * @brief Item class constructor. No parameters.
+ */
 td::Item::Item() : RenderObject() {
     this->obtained = false;
     this->committed = false;
 }
+/**
+ * @brief Item class constructor.
+ * @param map The td::Map instance that the item is to be placed on.
+ * @param width Item width.
+ * @param height Item height.
+ * @param color Item fill color.
+ */
 td::Item::Item(const td::Map& map, int width, int height, sf::Color color) : RenderObject() {
     this->map = map;
     this->obtained = false;
@@ -1542,15 +1686,23 @@ td::Item::Item(const td::Map& map, int width, int height, sf::Color color) : Ren
     this->height = height;
     this->color = color;
 }
+/**
+ * @brief Item class destructor.
+ */
 td::Item::~Item() = default;
 
-// Reset the item's state to un-obtained
+/**
+ * @brief Reset the item's state to un-obtained and un-committed.
+ */
 void td::Item::reset() {
     this->obtained = false;
     this->committed = false;
 }
 
-// Render the item, but don't render it if it has been obtained already
+/**
+ * @brief Render the item, but don't render it if it has been obtained already.
+ * @param target An SFML RenderTarget.
+ */
 void td::Item::draw(sf::RenderTarget* target) {
     if (!this->obtained) {
         this->drawable.setPosition(sf::Vector2f(this->x, this->y));
@@ -1559,22 +1711,35 @@ void td::Item::draw(sf::RenderTarget* target) {
     }
 }
 
-// Has the item been obtained by the player?
+/**
+ * @brief Check if the item been obtained by the player.
+ * @return Boolean. True = obtained by player, False = has not been obtained.
+ */
 bool td::Item::isObtained() const {
     return this->obtained;
 }
 
-// Set if the item should be consider obtained
+/**
+ * @brief Set whether the item should be consider obtained.
+ * @param item_obtained Boolean obtained status.
+ */
 void td::Item::setObtained(bool item_obtained) {
     this->obtained = item_obtained;
 }
 
-// Has the item been committed (secured) by the player?
+/**
+ * @brief Check if the item been committed (secured) by the player.
+ * Committed items are items that won't be lost if the player dies, for instance.
+ * @return Boolean. True = committed by player, False = has not been committed.
+ */
 bool td::Item::isCommitted() const {
     return this->committed;
 }
 
-// Set if the item should be consider committed (secured)
+/**
+ * @brief Set whether the item should be consider committed (secured).
+ * @param item_committed Boolean committed status.
+ */
 void td::Item::setCommitted(bool item_committed) {
     this->committed = item_committed;
 }

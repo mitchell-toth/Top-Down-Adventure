@@ -497,12 +497,15 @@ namespace td {
         int getHarm() const;
         void setHarm(int health_points);
 
-        // Movement
+        /**
+         * @enum MoveOptions
+         * @brief Enemy waypoints move options.
+         */
         enum MoveOptions {
             LOOP = 1,
             BACK_AND_FORTH = 2
         };
-        void setWaypoints(const std::vector<sf::Vector2f>& enemy_waypoints, bool tiles = true);
+        void setWaypoints(const std::vector<sf::Vector2f>& enemy_waypoints, bool tiles=true);
         void setMoveOption(int enemy_move_option);
         void setStartPosition(float start_x, float start_y) override;
         void setStartTile(int row, int col) override;
