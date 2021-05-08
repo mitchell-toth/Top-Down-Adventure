@@ -1366,9 +1366,9 @@ std::vector<td::Enemy*> td::Player::getTouchingCircleEnemies() {
 
     sf::RectangleShape p_rect = td::Shapes::rect(this->x, this->y, this->width, this->height);
     for (auto enemy : *this->map.getEnemies()) {
-        // Create a temporary circle object for the enemy. The radius is enemy width minus 1 to give some grace.
+        // Create a temporary circle object for the enemy. The radius is manipulated to give some grace.
         sf::CircleShape enemy_circ = td::Shapes::circ(
-                enemy->getPosition().x, enemy->getPosition().y, (float)enemy->getSize().width/2 - 1);
+                enemy->getPosition().x, enemy->getPosition().y, (float)((float)enemy->getSize().width/2));
         if (p_rect.getGlobalBounds().intersects(enemy_circ.getGlobalBounds())) {
             touching_enemies.emplace_back(enemy);
         }
@@ -1542,6 +1542,8 @@ void td::Enemy::reset() {
     if (!this->waypoints.empty()) {
         this->x = this->waypoints[0].x;
         this->y = this->waypoints[0].y;
+        this->current_waypoint_index = 0;
+        this->direction = 1;
     }
     else {
         this->x = 0; this->y = 0;
@@ -1696,6 +1698,8 @@ void td::Enemy::move(float elapsed) {
     float distance_remaining = std::abs(td::Util::dist(current_x, current_y, target_x, target_y));
     float distance_traveled = std::abs(td::Util::dist(current_x, current_y, new_x, new_y));
     if (distance_traveled > distance_remaining) {
+        //TODO: If the target waypoint and the next target waypoint are on the same line,
+        // then go straight to the next target waypoint.
         new_x = target_x;
         new_y = target_y;
     }

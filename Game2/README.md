@@ -24,7 +24,7 @@ The first step is to include TDAHelper in our game build. For example, in a proj
 
 Let's try to create the first level of The World's Hardest Game. This our goal:
 
-![World's Hardest Game level 1 - the goal](img/worlds-hardest-game-level-1.jpg "Level 1 of the World's Hardest Game, the goal")
+![World's Hardest Game level 1 - the goal](doc/worlds-hardest-game-level-1.jpg "Level 1 of the World's Hardest Game, the goal")
 
 With TDAHelper included, creating the game's tile grid is very easy. To load in a map, first create a map text file. TDAHelper parses map files in the following way:
 
@@ -83,7 +83,7 @@ Here we also set the tile size, which governs the n x n pixel dimensions of each
 map1.draw(this->window);
 ```
 
-![World's Hardest Game level 1 - our example](img/worlds-hardest-game-level-1-TDAHelper.PNG "Level 1 of the World's Hardest Game, our example")
+![World's Hardest Game level 1 - our example](doc/worlds-hardest-game-level-1-TDAHelper.PNG "Level 1 of the World's Hardest Game, our example")
 
 # Player
 
@@ -118,7 +118,7 @@ Draw the player in the "render()" section of the game loop:
 player.draw(this->window);
 ```
 
-![World's Hardest Game level 1 with player](img/worlds-hardest-game-level-1-with-player.PNG "Level 1 of the World's Hardest Game with a player")
+![World's Hardest Game level 1 with player](doc/worlds-hardest-game-level-1-with-player.PNG "Level 1 of the World's Hardest Game with a player")
 
 # Player-Map Interaction
 
@@ -146,7 +146,7 @@ map1.setTileType(td::Map::TileTypes::WALL, {'#', '|'});
 
 When we draw the map and the player, the player will start at the 's' tile we specified in "map1.txt". When moving around, the player will be restricted within the wall tiles we specified.
 
-![Player and wall collision](img/worlds-hardest-game-walls.gif "The player is bound within the map's wall tiles")
+![Player and wall collision](doc/worlds-hardest-game-walls.gif "The player is bound within the map's wall tiles")
 
 We can check for events related to these special tile types. Our game logic will be built around these events. For example, we can check if the player has reached an end tile:
 
@@ -196,7 +196,7 @@ map1.moveEnemies(elapsed);
 map1.drawEnemies(this->window);
 ```
 
-![Enemy movement](img/worlds-hardest-game-enemy-movement.gif "Enemy movement happends via a waypoint system")
+![Enemy movement](doc/worlds-hardest-game-enemy-movement.gif "Enemy movement happends via a waypoint system")
 
 To handle player-enemy collision, simply define the body of the following if-statements. For our purposes, we will apply the enemy's harm if a collision has been detected:
 
@@ -228,7 +228,7 @@ if (player.isDead()) {
 }
 ```
 
-![Enemy movement](img/worlds-hardest-game-enemy-collision.gif "Enemy-player collision")
+![Enemy movement](doc/worlds-hardest-game-enemy-collision.gif "Enemy-player collision")
 
 # Items
 
@@ -274,7 +274,7 @@ if (player.isTouchingItem()) {
 
 After an item is obtained, it no longer gets displayed on the map. Should we want to remove items from the player's inventory, we can do so with `player.clearInventory();` or `player.resetInventory();`. The former removes only the player's uncommitted items, whereas the latter removes all items from the player's inventory, regardless of committed status.
 
-![Player coin pickup](img/worlds-hardest-game-coin-pickup.gif "The player can pick up coins but loses them upon death")
+![Player coin pickup](doc/worlds-hardest-game-coin-pickup.gif "The player can pick up coins but loses them upon death")
 
 # Checkpoints
 
@@ -295,7 +295,7 @@ if (player.onCheckpoint()) {
 
 Now, even if the player dies, the items collected since the last checkpoint will remain in the player's inventory. And the player no longer respawns at the starting location but at the last checkpoint reached.
 
-![Checkpoint](img/worlds-hardest-game-checkpoint.gif "Player checkpoint")
+![Checkpoint](doc/worlds-hardest-game-checkpoint.gif "Player checkpoint")
 
 # Menus
 
@@ -328,7 +328,7 @@ std::string selected = mainMenuButton.onMouseClick();
 
 (If no menu option was clicked on this frame, onMouseClick() returns the empty string "").
 
-![TDAHelper makes it easy to create clickable menus](img/worlds-hardest-game-menus.gif "TDAHelper makes it easy to create clickable menus")
+![TDAHelper makes it easy to create clickable menus](doc/worlds-hardest-game-menus.gif "TDAHelper makes it easy to create clickable menus")
 
 # Audio
 
@@ -348,6 +348,6 @@ Play the audio with `this->music.play();` or `this->sound.play()`, and similarly
 
 In just a few lines of code, we managed to make a level that looks and behaves remarkably similar to The World's Hardest Game.
 
-![The finished product](img/worlds-hardest-game-level-1-finished.PNG "The finished product")
+![The finished product](doc/worlds-hardest-game-level-1-finished.PNG "The finished product")
 
 With TDAHelper, top-down adventure games are a breeze. Try it out! Enjoy!

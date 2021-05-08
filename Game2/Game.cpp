@@ -139,7 +139,7 @@ void Game::initView() {
 void Game::initPlayer() {
     this->player = td::Player();
     this->player.setMap(this->current_map);
-    this->player.setSize((int)(this->tile_size*0.8), (int)(this->tile_size*0.8), true);
+    this->player.setSize((int)(this->tile_size*0.7), (int)(this->tile_size*0.7), true);
     this->player.setMovementKeys(sf::Keyboard::W,sf::Keyboard::A,
                                    sf::Keyboard::S, sf::Keyboard::D);
     this->player.setMoveSpeed(30);
