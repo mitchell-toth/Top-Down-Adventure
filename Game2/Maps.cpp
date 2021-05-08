@@ -196,30 +196,85 @@ std::vector<td::Map> Maps::initMaps(int tile_size) {
 
     /* Map 6: */
 
-//    map = td::Map("../assets/maps/map6.txt");
-//    map.setTileSize(tile_size);
-//    map.setTileType(td::Map::TileTypes::WALL, {'#'});
-//    map.setSpriteSheet(sprite_sheet);
-//
-//    // Add enemies
-//    speed = 30;
-//    int speed2 = 50;
-//    Maps::addEnemy(map, {{5, 5}, {9, 5}}, speed);
-//    Maps::addEnemy(map, {{9, 6}, {5, 6}}, speed);
-//    Maps::addEnemy(map, {{5, 7}, {9, 7}}, speed);
-//    Maps::addEnemy(map, {{9, 8}, {5, 8}}, speed);
-//    Maps::addEnemy(map, {{5, 9}, {9, 9}}, speed);
-//    Maps::addEnemy(map, {{9, 10}, {5, 10}}, speed);
-//    Maps::addEnemy(map, {{5, 11}, {9, 11}}, speed);
-//    Maps::addEnemy(map, {{9, 12}, {5, 12}}, speed);
-//    Maps::addEnemy(map, {{5, 13}, {9, 13}}, speed);
-//    Maps::addEnemy(map, {{9, 14}, {5, 14}}, speed);
-//
-//    Maps::addEnemy(map, {{5, 5}, {9, 9}, {5, 13}, {6, 14}, {9, 11}, {5, 7}, {7, 5}, {9, 7}, {5, 11}, {8, 14}, {9, 13}, {5, 9}, {9, 5}}, speed, true, td::Enemy::MoveOptions::BACK_AND_FORTH);
-//    // Maps::addEnemy(map, {{9, 5}, {5, 9}, {9, 13}, {8, 14}, {5, 11}, {9, 7}, {7, 5}, {5, 7}, {9, 11}, {6, 14}, {5, 13}, {9, 9}, {5, 5}}, speed, true, td::Enemy::MoveOptions::BACK_AND_FORTH);
-//
-//    // Add map
-//    maps.emplace_back(map);
+    map = td::Map("../assets/maps/map6.txt");
+    map.setTileSize(tile_size);
+    map.setTileType(td::Map::TileTypes::WALL, {'#'});
+    map.setSpriteSheet(sprite_sheet);
+
+    // Add enemies
+    speed = 28;
+    Maps::addEnemy(map, {{4, 3}, {4, 4}, {5, 4}, {5, 3}}, speed);
+    Maps::addEnemy(map, {{4, 5}, {4, 6}, {5, 6}, {5, 5}}, speed);
+    Maps::addEnemy(map, {{6, 3}, {6, 4}, {7, 4}, {7, 3}}, speed);
+    Maps::addEnemy(map, {{6, 5}, {6, 6}, {7, 6}, {7, 5}}, speed);
+    Maps::addEnemy(map, {{8, 3}, {8, 4}, {9, 4}, {9, 3}}, speed);
+    Maps::addEnemy(map, {{8, 5}, {8, 6}, {9, 6}, {9, 5}}, speed);
+    Maps::addEnemy(map, {{10, 3}, {10, 4}, {11, 4}, {11, 3}}, speed);
+    Maps::addEnemy(map, {{10, 5}, {10, 6}, {11, 6}, {11, 5}}, speed);
+
+    Maps::addEnemy(map, {{10, 7}, {10, 8}, {11, 8}, {11, 7}}, speed);
+    Maps::addEnemy(map, {{10, 9}, {10, 10}, {11, 10}, {11, 9}}, speed);
+    Maps::addEnemy(map, {{8, 8}, {8, 9}, {9, 9}, {9, 8}}, speed);
+    Maps::addEnemy(map, {{8, 10}, {8, 11}, {9, 11}, {9, 10}}, speed);
+    Maps::addEnemy(map, {{6, 8}, {6, 9}, {7, 9}, {7, 8}}, speed);
+    Maps::addEnemy(map, {{6, 10}, {6, 11}, {7, 11}, {7, 10}}, speed);
+    Maps::addEnemy(map, {{4, 9}, {4, 10}, {5, 10}, {5, 9}}, speed);
+    Maps::addEnemy(map, {{4, 11}, {4, 12}, {5, 12}, {5, 11}}, speed);
+
+    Maps::addEnemy(map, {{4, 13}, {4, 14}, {5, 14}, {5, 13}}, speed);
+    Maps::addEnemy(map, {{4, 15}, {4, 16}, {5, 16}, {5, 15}}, speed);
+    Maps::addEnemy(map, {{6, 13}, {6, 14}, {7, 14}, {7, 13}}, speed);
+    Maps::addEnemy(map, {{6, 15}, {6, 16}, {7, 16}, {7, 15}}, speed);
+    Maps::addEnemy(map, {{8, 13}, {8, 14}, {9, 14}, {9, 13}}, speed);
+    Maps::addEnemy(map, {{8, 15}, {8, 16}, {9, 16}, {9, 15}}, speed);
+    Maps::addEnemy(map, {{10, 13}, {10, 14}, {11, 14}, {11, 13}}, speed);
+    Maps::addEnemy(map, {{10, 15}, {10, 16}, {11, 16}, {11, 15}}, speed);
+
+    // Add coins
+    Maps::addCoin(map, 10, 3);
+    Maps::addCoin(map, 10, 4);
+    Maps::addCoin(map, 11, 3);
+    Maps::addCoin(map, 11, 4);
+
+    Maps::addCoin(map, 7, 9);
+    Maps::addCoin(map, 7, 10);
+    Maps::addCoin(map, 8, 9);
+    Maps::addCoin(map, 8, 10);
+
+    Maps::addCoin(map, 4, 15);
+    Maps::addCoin(map, 4, 16);
+    Maps::addCoin(map, 5, 15);
+    Maps::addCoin(map, 5, 16);
+
+    // Add map
+    maps.emplace_back(map);
+    //------------------------------------------------------------------------------------------------------------------
+
+    /* Map 7: */
+
+    map = td::Map("../assets/maps/map7.txt");
+    map.setTileSize(tile_size);
+    map.setTileType(td::Map::TileTypes::WALL, {'#'});
+    map.setSpriteSheet(sprite_sheet);
+
+    // Add enemies
+    speed = 36;
+    Maps::addEnemy(map, {{5, 5}, {9, 5}}, speed);
+    Maps::addEnemy(map, {{9, 6}, {5, 6}}, speed);
+    Maps::addEnemy(map, {{5, 7}, {9, 7}}, speed);
+    Maps::addEnemy(map, {{9, 8}, {5, 8}}, speed);
+    Maps::addEnemy(map, {{5, 9}, {9, 9}}, speed);
+    Maps::addEnemy(map, {{9, 10}, {5, 10}}, speed);
+    Maps::addEnemy(map, {{5, 11}, {9, 11}}, speed);
+    Maps::addEnemy(map, {{9, 12}, {5, 12}}, speed);
+    Maps::addEnemy(map, {{5, 13}, {9, 13}}, speed);
+    Maps::addEnemy(map, {{9, 14}, {5, 14}}, speed);
+
+    Maps::addEnemy(map, {{5, 5}, {9, 9}, {5, 13}, {6, 14}, {9, 11}, {5, 7}, {7, 5}, {9, 7}, {5, 11}, {8, 14}, {9, 13}, {5, 9}, {9, 5}}, 43, true, td::Enemy::MoveOptions::BACK_AND_FORTH);
+    Maps::addEnemy(map, {{9, 5}, {5, 9}, {9, 13}, {8, 14}, {5, 11}, {9, 7}, {7, 5}, {5, 7}, {9, 11}, {6, 14}, {5, 13}, {9, 9}, {5, 5}}, 43, true, td::Enemy::MoveOptions::BACK_AND_FORTH);
+
+    // Add map
+    maps.emplace_back(map);
     //------------------------------------------------------------------------------------------------------------------
 
     return maps;
@@ -234,7 +289,8 @@ std::vector<std::string> Maps::initTitleScreens() {
     titles.emplace_back("I CAN ALMOST\nGUARANTEE THAT\nYOU WILL FAIL.");
     titles.emplace_back("DON'T GET CONFUSED,\nNOW.");
     titles.emplace_back("HARDER THAN IT\nLOOKS.");
-    // titles.emplace_back("NOT SO EASY,\nIS IT?");
+    titles.emplace_back("GIVE UP, THIS ONE\nISN'T EVEN HARD.");
+    titles.emplace_back("NOT SO EASY,\nIS IT?");
     return titles;
 }
 

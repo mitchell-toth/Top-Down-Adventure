@@ -189,7 +189,7 @@ void Game::initMenus() {
     std::vector<std::vector<std::string>> levelOptions = std::vector<std::vector<std::string>>();
     int r = -1;
     for (int c=0; c<this->maps.size(); c++) {
-        if (levelOptions.size() % 6 == 0) {
+        if (c % 6 == 0) {
             levelOptions.emplace_back(std::vector<std::string>());
             r++;
         }
@@ -350,6 +350,8 @@ void Game::pollEvents() {
                 else if (this->state == State::MAIN_MENU) {
                     if (this->titleMenu.onMouseClick() == "PLAY\nGAME") {
                         this->state = State::PLAYING;
+                        this->map_index=0;
+                        this->numDeaths=0;
                         this->loadMap(this->map_index);
                     }
                     else if (this->titleMenu.onMouseClick() == "LEVEL\nSELECT") {
@@ -361,6 +363,7 @@ void Game::pollEvents() {
                     std::string selectedLevel = levelSelectMenu.onMouseClick();
                     if (!selectedLevel.empty()) {
                         this->map_index = std::stoi(selectedLevel)-1;
+                        this->numDeaths=0;
                         this->loadMap(this->map_index);
                     }
                 }

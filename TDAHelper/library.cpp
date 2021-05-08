@@ -49,6 +49,29 @@ bool td::Util::keyInMap(std::map<K, V> map, K key) {
 float td::Util::dist(float x1, float y1, float x2, float y2) {
     return (float)std::sqrt(std::pow(x2-x1, 2) +std::pow(y2-y1, 2));
 }
+
+/**
+ * @brief Check if a given circle and rectangle are colliding/intersecting.
+ * Credit to e.James, https://stackoverflow.com/questions/401847/circle-rectangle-collision-detection-intersection.
+ * @param circle An SFML CircleShape instance.
+ * @param rect An SFML RectangleShape instance.
+ * @return Boolean. True = collision, False = no collision.
+ */
+bool td::Util::intersects(const sf::CircleShape &circle, const sf::RectangleShape &rect) {
+    sf::Vector2f circleDistance;
+    circleDistance.x = std::abs(circle.getPosition().x - (rect.getPosition().x + rect.getSize().x/2));
+    circleDistance.y = std::abs(circle.getPosition().y - (rect.getPosition().y + rect.getSize().y/2));
+
+    if (circleDistance.x > (rect.getSize().x/2 + circle.getRadius())) { return false; }
+    if (circleDistance.y > (rect.getSize().y/2 + circle.getRadius())) { return false; }
+
+    if (circleDistance.x <= (rect.getSize().x/2)) { return true; }
+    if (circleDistance.y <= (rect.getSize().y/2)) { return true; }
+
+    double cornerDistance_sq = std::pow((circleDistance.x - rect.getSize().x/2), 2) + std::pow((circleDistance.y - rect.getSize().y/2), 2);
+
+    return (cornerDistance_sq <= (std::pow(circle.getRadius(), 2)));
+}
 //------------------------------------------------------------------------------------------------------------------
 
 
@@ -208,6 +231,7 @@ sf::CircleShape td::Shapes::circ(float x, float y, float radius, sf::Color color
     sf::CircleShape circ;
     circ.setRadius(radius);
     circ.setPosition(x, y);
+    circ.setOrigin(radius, radius);
     circ.setFillColor(color);
     return circ;
 }
@@ -1368,8 +1392,13 @@ std::vector<td::Enemy*> td::Player::getTouchingCircleEnemies() {
     for (auto enemy : *this->map.getEnemies()) {
         // Create a temporary circle object for the enemy. The radius is manipulated to give some grace.
         sf::CircleShape enemy_circ = td::Shapes::circ(
-                enemy->getPosition().x, enemy->getPosition().y, (float)((float)enemy->getSize().width/2));
-        if (p_rect.getGlobalBounds().intersects(enemy_circ.getGlobalBounds())) {
+                enemy->getPosition().x + (float)(enemy->getSize().width)/2,
+                enemy->getPosition().y + (float)(enemy->getSize().height)/2,
+                (float)enemy->getSize().width/2);
+//        if (p_rect.getGlobalBounds().intersects(enemy_circ.getGlobalBounds())) {
+//            touching_enemies.emplace_back(enemy);
+//        }
+        if (td::Util::intersects(enemy_circ, p_rect)) {
             touching_enemies.emplace_back(enemy);
         }
     }
@@ -1671,12 +1700,12 @@ void td::Enemy::move(float elapsed) {
     float dx;
     float dy;
     if (std::abs(m) >= 1) {
-        dx = this->speed * elapsed * m;
+        dx = this->speed * elapsed * std::abs(m);
         dy = this->speed * elapsed;
     }
     else {
         dx = this->speed * elapsed;
-        dy = this->speed * elapsed * m;
+        dy = this->speed * elapsed * std::abs(m);
     }
 
     // Get signs

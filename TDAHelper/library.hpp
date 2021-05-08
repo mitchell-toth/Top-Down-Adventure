@@ -50,6 +50,7 @@ namespace td {
             int height{0};
         };
         static float dist(float x1, float y1, float x2, float y2);
+        static bool intersects(const sf::CircleShape& circle, const sf::RectangleShape& rect);
     };
     //------------------------------------------------------------------------------------------------------------------
 
