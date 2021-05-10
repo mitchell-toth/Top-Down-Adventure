@@ -14,6 +14,8 @@ class Game {
         int fps{};
         float pause{};
 
+        float SCREEN_OFFSET;
+
         // State
         enum State {
             INTRO_SCREEN = 1,

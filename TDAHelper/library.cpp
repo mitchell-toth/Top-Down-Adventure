@@ -1395,9 +1395,6 @@ std::vector<td::Enemy*> td::Player::getTouchingCircleEnemies() {
                 enemy->getPosition().x + (float)(enemy->getSize().width)/2,
                 enemy->getPosition().y + (float)(enemy->getSize().height)/2,
                 (float)enemy->getSize().width/2);
-//        if (p_rect.getGlobalBounds().intersects(enemy_circ.getGlobalBounds())) {
-//            touching_enemies.emplace_back(enemy);
-//        }
         if (td::Util::intersects(enemy_circ, p_rect)) {
             touching_enemies.emplace_back(enemy);
         }

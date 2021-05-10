@@ -127,9 +127,16 @@ void Game::initMaps() {
 
 // Initialize the camera view
 void Game::initView() {
+    // For some reason, non-Windows compilers shift the view's center x value by half a tile
+    // If not on Windows, define a screen offset to move the view's center where it belongs.
+    this->SCREEN_OFFSET = 0;
+#ifndef _WIN32
+    this->SCREEN_OFFSET = -1 * (float)this->tile_size/2;
+#endif
+
     this->view.reset(sf::FloatRect(0, 0, this->videoMode.width, this->videoMode.height));
     this->view.rotate(this->angle);
-    this->view.setCenter((float)(this->current_map.getMapSize().x)/2,(float)(this->current_map.getMapSize().y)/2);
+    this->view.setCenter((float)(this->current_map.getMapSize().x)/2 + this->SCREEN_OFFSET,(float)(this->current_map.getMapSize().y)/2);
     this->view.zoom(this->zoom);
     this->window->setView(this->view);
 }
@@ -285,11 +292,7 @@ void Game::render() {
     this->window->clear(this->background_color);
 
     // Configure the camera view
-    this->view.reset(sf::FloatRect(0, 0, this->videoMode.width, this->videoMode.height));
-    this->view.rotate(this->angle);
-    this->view.setCenter((float)(this->current_map.getMapSize().x)/2,(float)(this->current_map.getMapSize().y)/2);
-    this->view.zoom(this->zoom);
-    this->window->setView(this->view);
+    this->initView();
 
     // Handle state and corresponding title screens
     switch (this->state) {
