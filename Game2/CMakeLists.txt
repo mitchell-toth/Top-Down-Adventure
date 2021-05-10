@@ -16,4 +16,4 @@ add_library(TDAHelper SHARED ../TDAHelper/library.cpp)
 target_link_libraries(TDAHelper sfml-audio sfml-network sfml-graphics sfml-window sfml-system)
 
 add_executable(Game2 main.cpp Game.cpp Game.h Maps.cpp Maps.h)
-target_link_libraries(Game2 TDAHelper)
+target_link_libraries(Game2 TDAHelper -static-libstdc++)
