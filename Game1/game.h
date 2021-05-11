@@ -15,6 +15,8 @@ private:
     int fps{};
     int pause{};
 
+    float SCREEN_OFFSET;
+
     // Map
     td::Map current_map;
     std::vector<td::Map> maps;
