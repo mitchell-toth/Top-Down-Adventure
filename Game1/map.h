@@ -16,6 +16,9 @@ namespace Maps {
                   sf::Color color = sf::Color::Blue, int harm = Maps::enemy_harm);
     void addCoin(td::Map& map, int row, int col, int width = Maps::coin_width, int height = Maps::coin_height,
                  sf::Color color = sf::Color::Yellow);
+
+    void checkpointOrder(td::Map& map, int order[]);
+
 };
 
 

@@ -101,6 +101,7 @@ void Game::initPlayer() {
                                    sf::Keyboard::S, sf::Keyboard::D);
     this->player.p.setMoveSpeed(30);
     this->player.p.setTexture("../assets/sprites/Player.png");
+    this->player.p.setCPTexture("../assets/sprites/fire.png");
 }
 
 // Initialize game music and sound effects
@@ -143,7 +144,6 @@ void Game::update() {
     if (this->player.p.isTouchingEnemy()) {
         for (auto enemy: this->player.p.getTouchingEnemies()) {
             this->player.p.loseHealth(enemy->getHarm());
-            lives--;
         }
     }
 
@@ -157,6 +157,13 @@ void Game::update() {
 
     // Respawn if player is dead
     if (this->player.p.isDead()) {
+        lives--;
+        std::cout << lives << std::endl;
+        std::vector<td::Item*> touching_items = *this->current_map.getItems();
+        this->player.p.obtainItem(touching_items[abs(lives-2)]);
+        if(lives == 0){
+            this->window->close();
+        }
         this->pauseRespawn();
     }
 
@@ -165,6 +172,8 @@ void Game::update() {
         // Don't advance to the next map if the player hasn't collected all the map's coins
         if(numCheckpoints == 0) {
             this->loadNextMap();
+            lives = 3;
+            numCheckpoints = 5;
         }
         else {
             this->player.p.respawn();
@@ -192,7 +201,6 @@ void Game::render() {
     this->current_map.draw(this->window);
 
     // Mark current checkpoint
-    this->player.p.setCPTexture("../assets/sprites/fire.png");
     for(int i=0; i < abs(numCheckpoints-5); i++) {
         this->player.p.drawCP(this->window, this->current_map.checkpointList[i].y, this->current_map.checkpointList[i].x);
     }
